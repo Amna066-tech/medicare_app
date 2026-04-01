@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "287163138298",
+    "project_id": "medicarex-fa4c0",
+    "storage_bucket": "medicarex-fa4c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:287163138298:android:d36b84f37386d0f34dc943",
+        "android_client_info": {
+          "package_name": "com.example.medicare_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNQuYF7Y8r_fkhKFlAaS6LQD3Gt75bLcc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
