@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'signup_screen.dart';
-import 'home_screen.dart';
+import 'main_navigation_screen.dart';
+import 'admin_login_screen.dart'; // Keep this import!
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +16,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  String _selectedRole = 'Patient';
+
   void login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
@@ -27,8 +30,13 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
       if (context.mounted) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+        if (_selectedRole == 'Patient') {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainNavigationScreen()));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Routing to Caregiver Dashboard...")));
+        }
       }
     } on FirebaseAuthException catch (e) {
       if (context.mounted) {
@@ -41,11 +49,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 1. Beautiful Gradient Background
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF4CA1AF), Color(0xFF2C3E50)], // Soft Medical Blue to Deep Slate
+            colors: [Color(0xFF4CA1AF), Color(0xFF2C3E50)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -57,15 +64,23 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // 2. Premium Logo Area
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      shape: BoxShape.circle,
+
+                  // NEW: THE SECRET ADMIN ENTRANCE!
+                  // Press and hold the logo to enter the Admin Screen
+                  GestureDetector(
+                    onLongPress: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const AdminLoginScreen()));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.health_and_safety, size: 80, color: Colors.white),
                     ),
-                    child: const Icon(Icons.health_and_safety, size: 80, color: Colors.white),
                   ),
+
                   const SizedBox(height: 16),
                   const Text(
                     "Medicare",
@@ -77,7 +92,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // 3. Floating White Card for Inputs
                   Card(
                     elevation: 8,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -91,7 +105,57 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 24),
 
-                          // Custom Styled TextFields
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => setState(() => _selectedRole = 'Patient'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: _selectedRole == 'Patient' ? const Color(0xFF4CA1AF) : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFF4CA1AF)),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "Patient",
+                                        style: TextStyle(
+                                          color: _selectedRole == 'Patient' ? Colors.white : const Color(0xFF4CA1AF),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => setState(() => _selectedRole = 'Caregiver'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: _selectedRole == 'Caregiver' ? const Color(0xFF4CA1AF) : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFF4CA1AF)),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "Caregiver",
+                                        style: TextStyle(
+                                          color: _selectedRole == 'Caregiver' ? Colors.white : const Color(0xFF4CA1AF),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
                           TextField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -121,17 +185,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
 
-                          // Forgot Password Align Right
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {}, // Add forgot password logic later
+                              onPressed: () {},
                               child: const Text("Forgot Password?", style: TextStyle(color: Color(0xFF4CA1AF))),
                             ),
                           ),
                           const SizedBox(height: 16),
 
-                          // Big Beautiful Login Button
                           SizedBox(
                             width: double.infinity,
                             height: 55,
@@ -154,7 +216,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
 
                   const SizedBox(height: 24),
-                  // Bottom Sign Up Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -166,7 +227,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text("Sign Up", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
                       ),
                     ],
-                  )
+                  ),
+                  const SizedBox(height: 20), // Kept spacing, removed the text link!
                 ],
               ),
             ),

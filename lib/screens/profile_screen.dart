@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  // This helper function reaches into the database and counts the user's active items!
-  Future<Map<String, int>> fetchHealthStats(String uid) async {
-    final medQuery = await FirebaseFirestore.instance.collection('medications').where('userId', isEqualTo: uid).get();
-    final apptQuery = await FirebaseFirestore.instance.collection('appointments').where('userId', isEqualTo: uid).get();
-    final actQuery = await FirebaseFirestore.instance.collection('activities').where('userId', isEqualTo: uid).get();
-
-    return {
-      'medications': medQuery.docs.length,
-      'appointments': apptQuery.docs.length,
-      'activities': actQuery.docs.length,
-    };
+  void logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (Route<dynamic> route) => false,
+      );
+    }
   }
 
   @override
@@ -25,121 +24,141 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text("My Profile", style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        title: const Text("My Profile", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: const Color(0xFF4CA1AF),
         elevation: 0,
+        automaticallyImplyLeading: false,
       ),
       body: user == null
-          ? const Center(child: Text("Not logged in"))
+          ? const Center(child: Text("Please log in to view your profile."))
           : FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
-        builder: (context, userSnapshot) {
-          if (userSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-            return const Center(child: Text("Profile data not found."));
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF4CA1AF)));
           }
 
-          var userData = userSnapshot.data!.data() as Map<String, dynamic>;
+          // If no data exists yet, we provide safe default values so it doesn't crash!
+          String name = "New User";
+          String email = user.email ?? "No Email";
 
-          return ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              const CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.blueAccent,
-                child: Icon(Icons.person, size: 60, color: Colors.white),
-              ),
-              const SizedBox(height: 24),
+          if (snapshot.hasData && snapshot.data!.exists) {
+            var userData = snapshot.data!.data() as Map<String, dynamic>;
+            name = userData['name'] ?? "New User";
+          }
 
-              const Text("Personal Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey)),
-              const SizedBox(height: 12),
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.badge, color: Colors.blue),
-                      title: const Text("Full Name", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      subtitle: Text(userData['name'] ?? 'N/A', style: const TextStyle(fontSize: 16, color: Colors.black)),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.email, color: Colors.blue),
-                      title: const Text("Email Address", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      subtitle: Text(userData['email'] ?? 'N/A', style: const TextStyle(fontSize: 16, color: Colors.black)),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.cake, color: Colors.blue),
-                      title: const Text("Date of Birth", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      subtitle: Text(userData['dob'] ?? 'N/A', style: const TextStyle(fontSize: 16, color: Colors.black)),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.male, color: Colors.blue),
-                      title: const Text("Gender", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      subtitle: Text(userData['gender'] ?? 'N/A', style: const TextStyle(fontSize: 16, color: Colors.black)),
-                    ),
-                  ],
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // 1. Profile Header area
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(bottom: 30, top: 20),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF4CA1AF),
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                        child: const CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Color(0xFF2C3E50),
+                          child: Icon(Icons.person, size: 50, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text(email, style: const TextStyle(fontSize: 16, color: Colors.white70)),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 24),
-              const Text("Health Summary", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey)),
-              const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Account Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3E50))),
+                      const SizedBox(height: 16),
 
-              // --- THE NEW HEALTH SUMMARY WIDGET ---
-              FutureBuilder<Map<String, int>>(
-                  future: fetchHealthStats(user.uid),
-                  builder: (context, statsSnapshot) {
-                    if (statsSnapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+                      // 2. The 3 Sections You Requested!
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Column(
+                          children: [
+                            // Medical History
+                            ListTile(
+                              leading: _buildIcon(Icons.history_edu, Colors.blue),
+                              title: const Text("Medical History", style: TextStyle(fontWeight: FontWeight.w600)),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("History coming soon!")));
+                              },
+                            ),
+                            const Divider(height: 1, indent: 60),
 
-                    int meds = statsSnapshot.data?['medications'] ?? 0;
-                    int appts = statsSnapshot.data?['appointments'] ?? 0;
-                    int acts = statsSnapshot.data?['activities'] ?? 0;
+                            // Emergency Contacts
+                            ListTile(
+                              leading: _buildIcon(Icons.emergency, Colors.red),
+                              title: const Text("Emergency Contacts", style: TextStyle(fontWeight: FontWeight.w600)),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Emergency Contacts coming soon!")));
+                              },
+                            ),
+                            const Divider(height: 1, indent: 60),
 
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildStatCard("Meds", meds.toString(), Icons.medical_services, Colors.blue),
-                        _buildStatCard("Appts", appts.toString(), Icons.calendar_month, Colors.amber),
-                        _buildStatCard("Habits", acts.toString(), Icons.directions_run, Colors.orange),
-                      ],
-                    );
-                  }
-              )
-            ],
+                            // Feedback
+                            ListTile(
+                              leading: _buildIcon(Icons.feedback_outlined, Colors.orange),
+                              title: const Text("Send Feedback", style: TextStyle(fontWeight: FontWeight.w600)),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Feedback form coming soon!")));
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // 3. Logout Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 55,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.redAccent,
+                            side: const BorderSide(color: Colors.redAccent, width: 2),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          icon: const Icon(Icons.logout),
+                          label: const Text("LOG OUT", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                          onPressed: () => logout(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  // A small helper to draw the individual statistic boxes nicely
-  Widget _buildStatCard(String title, String count, IconData icon, Color color) {
-    return Expanded(
-      child: Card(
-        elevation: 2,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            children: [
-              Icon(icon, color: color, size: 32),
-              const SizedBox(height: 8),
-              Text(count, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-            ],
-          ),
-        ),
-      ),
+  // Quick helper widget for beautiful icons
+  Widget _buildIcon(IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+      child: Icon(icon, color: color),
     );
   }
 }

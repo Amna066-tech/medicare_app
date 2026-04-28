@@ -3,8 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
-import 'services/notification_service.dart'; // We added this!
+import 'screens/main_navigation_screen.dart'; // The new dashboard wrapper
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,15 +34,19 @@ class MedicareApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // StreamBuilder listens to Firebase Auth
-      home: StreamBuilder(
+      home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          // THE FIX: If logged in, go to the new Bottom Navigation Bar!
           if (snapshot.hasData) {
-            return const HomeScreen();
+            return const MainNavigationScreen();
           }
+
+          // If not logged in, go to Login
           return const LoginScreen();
         },
       ),

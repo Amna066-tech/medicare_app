@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'home_screen.dart';
+import 'main_navigation_screen.dart'; // <-- CHANGED THIS IMPORT
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -81,7 +81,8 @@ class _SignupScreenState extends State<SignupScreen> {
         });
 
         if (mounted) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+          // <-- CHANGED THE ROUTE HERE
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainNavigationScreen()));
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -127,7 +128,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2), // <-- FIXED BLUE WARNING
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.person_add_alt_1, size: 60, color: Colors.white),
@@ -174,7 +175,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // NEW: Date of Birth Field (Matches the styling perfectly)
+                          // NEW: Date of Birth Field
                           InkWell(
                             onTap: () => _selectDate(context),
                             borderRadius: BorderRadius.circular(12),
