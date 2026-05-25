@@ -31,10 +31,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     _selectedFrequency = widget.medication.frequency;
 
     // 2. Set the number of clocks based on their saved frequency
-    if (_selectedFrequency == "Once a day") _doseCount = 1;
-    else if (_selectedFrequency == "Twice a day") _doseCount = 2;
-    else if (_selectedFrequency == "3 times a day") _doseCount = 3;
-    else _doseCount = 1;
+    _updateDoseCount(_selectedFrequency);
 
     // 3. Convert their saved text times (e.g., "8:30 AM") back into real Flutter clocks!
     _selectedTimes = List.generate(_doseCount, (index) {
@@ -43,6 +40,18 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
       }
       return null;
     });
+  }
+
+  void _updateDoseCount(String frequency) {
+    if (frequency == "Once a day") {
+      _doseCount = 1;
+    } else if (frequency == "Twice a day") {
+      _doseCount = 2;
+    } else if (frequency == "3 times a day") {
+      _doseCount = 3;
+    } else {
+      _doseCount = 1;
+    }
   }
 
   // A clever helper to translate "8:30 AM" back into a working TimeOfDay object
@@ -55,8 +64,12 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
         int m = int.parse(match.namedGroup('minute')!);
         String? amPm = match.namedGroup('amPm');
         if (amPm != null) {
-          if (amPm.toLowerCase() == 'pm' && h != 12) h += 12;
-          if (amPm.toLowerCase() == 'am' && h == 12) h = 0;
+          if (amPm.toLowerCase() == 'pm' && h != 12) {
+            h += 12;
+          }
+          if (amPm.toLowerCase() == 'am' && h == 12) {
+            h = 0;
+          }
         }
         return TimeOfDay(hour: h, minute: m);
       }
@@ -71,9 +84,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     if (newFrequency == null) return;
     setState(() {
       _selectedFrequency = newFrequency;
-      if (newFrequency == "Once a day") _doseCount = 1;
-      else if (newFrequency == "Twice a day") _doseCount = 2;
-      else if (newFrequency == "3 times a day") _doseCount = 3;
+      _updateDoseCount(newFrequency);
 
       List<TimeOfDay?> newTimes = List.generate(_doseCount, (index) => null);
       for (int i = 0; i < _doseCount && i < _selectedTimes.length; i++) {
@@ -134,7 +145,9 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
         final time = _selectedTimes[i]!;
         final now = DateTime.now();
         DateTime scheduledDate = DateTime(now.year, now.month, now.day, time.hour, time.minute);
-        if (scheduledDate.isBefore(now)) scheduledDate = scheduledDate.add(const Duration(days: 1));
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
         int notificationId = scheduledDate.millisecondsSinceEpoch.remainder(100000) + i;
 
         await NotificationService().scheduleNotification(
@@ -155,7 +168,9 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
       }
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -247,8 +262,8 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                                 decoration: BoxDecoration(
-                                    color: const Color(0xFF4CA1AF).withOpacity(0.05),
-                                    border: Border.all(color: const Color(0xFF4CA1AF).withOpacity(0.3)),
+                                    color: const Color(0xFF4CA1AF).withValues(alpha: 0.05),
+                                    border: Border.all(color: const Color(0xFF4CA1AF).withValues(alpha: 0.3)),
                                     borderRadius: BorderRadius.circular(12)
                                 ),
                                 child: Row(

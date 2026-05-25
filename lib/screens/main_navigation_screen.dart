@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-// We will create these 4 screens next!
+// Your 4 screen imports!
 import 'reminders_dashboard.dart';
 import 'measurement_tracker_screen.dart';
-import 'chatbot_screen.dart';
+import 'chatbot_screen.dart'; // ADDED THIS IMPORT
 import 'profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -16,11 +16,11 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
-  // These are the 4 modules from your sketch
+  // FIXED: The list now has exactly 4 items to match your 4 buttons!
   final List<Widget> _screens = [
     const RemindersDashboard(),       // Index 0: Reminders
     const MeasurementTrackerScreen(), // Index 1: Tracker
-    const ChatbotScreen(),            // Index 2: Chatbot
+    const ChatbotScreen(),            // Index 2: Chatbot (This was missing!)
     const ProfileScreen(),            // Index 3: Profile
   ];
 
