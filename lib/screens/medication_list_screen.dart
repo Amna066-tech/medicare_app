@@ -6,17 +6,18 @@ import 'edit_medication_screen.dart';
 import '../models/medication_model.dart';
 
 class MedicationListScreen extends StatelessWidget {
-  const MedicationListScreen({super.key});
+  final String? patientId;
 
-  // UPGRADED: Now updates a specific dose index instead of the whole medicine
+  const MedicationListScreen({super.key, this.patientId});
+
   void updateDoseStatus(BuildContext context, String docId, int doseIndex, String status) async {
     try {
       await FirebaseFirestore.instance.collection('medications').doc(docId).set({
         'doseStatuses': {
-          doseIndex.toString(): status // Saves {"0": "Taken", "1": "Missed"}
+          doseIndex.toString(): status
         },
         'lastUpdated': DateTime.now().toString(),
-      }, SetOptions(merge: true)); // merge: true prevents overwriting other data
+      }, SetOptions(merge: true));
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Dose ${doseIndex + 1} marked as $status")));
@@ -43,7 +44,8 @@ class MedicationListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final String targetUid = patientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+    final bool isCaregiverView = patientId != null;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -53,7 +55,9 @@ class MedicationListScreen extends StatelessWidget {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: isCaregiverView
+          ? null
+          : FloatingActionButton.extended(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AddMedicationScreen())),
         backgroundColor: const Color(0xFF4CA1AF),
         icon: const Icon(Icons.add, color: Colors.white),
@@ -82,7 +86,7 @@ class MedicationListScreen extends StatelessWidget {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('medications')
-                  .where('userId', isEqualTo: user?.uid)
+                  .where('userId', isEqualTo: targetUid)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -90,7 +94,7 @@ class MedicationListScreen extends StatelessWidget {
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(
-                    child: Text("No medications found.\nTap + to add one!", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
+                    child: Text("No medications found.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
                   );
                 }
 
@@ -102,9 +106,11 @@ class MedicationListScreen extends StatelessWidget {
                     var data = doc.data() as Map<String, dynamic>;
                     String docId = doc.id;
 
-                    // Grab the list of times and the map of statuses
                     List<dynamic> times = data['reminderTimes'] ?? [];
                     Map<String, dynamic> doseStatuses = data['doseStatuses'] ?? {};
+
+                    // NEW DATA EXTRACTION: Pull health condition string details cleanly
+                    String diseaseName = data['diseaseName'] ?? 'General Care';
 
                     return Card(
                       elevation: 3,
@@ -115,7 +121,6 @@ class MedicationListScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Header Row
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -123,7 +128,10 @@ class MedicationListScreen extends StatelessWidget {
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), shape: BoxShape.circle),
+                                      decoration: BoxDecoration(
+                                          color: Colors.blue.withOpacity(0.1),
+                                          shape: BoxShape.circle
+                                      ),
                                       child: const Icon(Icons.medication, color: Colors.blue),
                                     ),
                                     const SizedBox(width: 12),
@@ -131,39 +139,42 @@ class MedicationListScreen extends StatelessWidget {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(data['name'] ?? 'Unknown', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
+                                        // UPDATED UI: Includes health condition layout directly under subheadings
+                                        Text("For: $diseaseName", style: const TextStyle(color: Color(0xFF4CA1AF), fontWeight: FontWeight.w600, fontSize: 13)),
                                         Text("${data['dosage']} • ${data['frequency']}", style: const TextStyle(color: Colors.grey)),
                                       ],
                                     ),
                                   ],
                                 ),
-                                PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'edit') {
-                                      MedicationModel currentMed = MedicationModel(
-                                        id: docId,
-                                        userId: data['userId'] ?? '',
-                                        name: data['name'] ?? '',
-                                        dosage: data['dosage'] ?? '',
-                                        frequency: data['frequency'] ?? 'Once a day',
-                                        startDate: data['startDate'] ?? '',
-                                        endDate: data['endDate'] ?? '',
-                                        reminderTimes: times, // Passing the NEW list!
-                                      );
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => EditMedicationScreen(medication: currentMed)));
-                                    } else if (value == 'delete') {
-                                      deleteMedication(context, docId);
-                                    }
-                                  },
-                                  itemBuilder: (context) => [
-                                    const PopupMenuItem(value: 'edit', child: Text("Edit")),
-                                    const PopupMenuItem(value: 'delete', child: Text("Delete", style: TextStyle(color: Colors.red))),
-                                  ],
-                                )
+                                if (!isCaregiverView)
+                                  PopupMenuButton<String>(
+                                    onSelected: (value) {
+                                      if (value == 'edit') {
+                                        MedicationModel currentMed = MedicationModel(
+                                          id: docId,
+                                          userId: data['userId'] ?? '',
+                                          name: data['name'] ?? '',
+                                          dosage: data['dosage'] ?? '',
+                                          diseaseName: diseaseName, // PASS TO EDIT
+                                          frequency: data['frequency'] ?? 'Once a day',
+                                          startDate: data['startDate'] ?? '',
+                                          endDate: data['endDate'] ?? '',
+                                          reminderTimes: times,
+                                        );
+                                        Navigator.push(context, MaterialPageRoute(builder: (context) => EditMedicationScreen(medication: currentMed)));
+                                      } else if (value == 'delete') {
+                                        deleteMedication(context, docId);
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(value: 'edit', child: Text("Edit")),
+                                      const PopupMenuItem(value: 'delete', child: Text("Delete", style: TextStyle(color: Colors.red))),
+                                    ],
+                                  )
                               ],
                             ),
                             const Divider(height: 24),
 
-                            // DYNAMIC DOSE ROWS
                             ...List.generate(times.length, (doseIndex) {
                               String currentStatus = doseStatuses[doseIndex.toString()] ?? "Pending";
                               bool isLocked = currentStatus != "Pending";
@@ -178,7 +189,6 @@ class MedicationListScreen extends StatelessWidget {
                                         style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2C3E50))
                                     ),
 
-                                    // If locked, show a hardcoded text label. If pending, show buttons.
                                     isLocked
                                         ? Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

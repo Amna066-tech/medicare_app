@@ -4,6 +4,7 @@ class UserModel {
   final String email;
   final String dateOfBirth;
   final String gender;
+  final String role;
 
   UserModel({
     required this.uid,
@@ -11,9 +12,9 @@ class UserModel {
     required this.email,
     required this.dateOfBirth,
     required this.gender,
+    required this.role,
   });
 
-  // This factory method takes data FROM Firebase and turns it into a Dart Object
   factory UserModel.fromMap(Map<String, dynamic> map, String documentId) {
     return UserModel(
       uid: documentId,
@@ -21,16 +22,17 @@ class UserModel {
       email: map['email'] ?? '',
       dateOfBirth: map['dateOfBirth'] ?? '',
       gender: map['gender'] ?? '',
+      role: map['role'] ?? 'Patient',
     );
   }
 
-  // This method takes our Dart Object and turns it into a Map to send TO Firebase
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'email': email,
       'dateOfBirth': dateOfBirth,
       'gender': gender,
+      'role': role,
     };
   }
 }

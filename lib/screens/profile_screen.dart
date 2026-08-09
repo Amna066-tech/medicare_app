@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_screen.dart';
+import 'medical_history_screen.dart';
+import 'emergency_contacts_screen.dart';
+import 'feedback_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -38,7 +41,6 @@ class ProfileScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator(color: Color(0xFF4CA1AF)));
           }
 
-          // If no data exists yet, we provide safe default values so it doesn't crash!
           String name = "New User";
           String email = user.email ?? "No Email";
 
@@ -50,7 +52,6 @@ class ProfileScreen extends StatelessWidget {
           return SingleChildScrollView(
             child: Column(
               children: [
-                // 1. Profile Header area
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.only(bottom: 30, top: 20),
@@ -84,41 +85,52 @@ class ProfileScreen extends StatelessWidget {
                       const Text("Account Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF2C3E50))),
                       const SizedBox(height: 16),
 
-                      // 2. The 3 Sections You Requested!
                       Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         child: Column(
                           children: [
-                            // Medical History
                             ListTile(
                               leading: _buildIcon(Icons.history_edu, Colors.blue),
                               title: const Text("Medical History", style: TextStyle(fontWeight: FontWeight.w600)),
                               trailing: const Icon(Icons.chevron_right),
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("History coming soon!")));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => MedicalHistoryScreen(userId: user.uid),
+                                  ),
+                                );
                               },
                             ),
                             const Divider(height: 1, indent: 60),
 
-                            // Emergency Contacts
                             ListTile(
                               leading: _buildIcon(Icons.emergency, Colors.red),
                               title: const Text("Emergency Contacts", style: TextStyle(fontWeight: FontWeight.w600)),
                               trailing: const Icon(Icons.chevron_right),
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Emergency Contacts coming soon!")));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const EmergencyContactsScreen(),
+                                  ),
+                                );
                               },
                             ),
                             const Divider(height: 1, indent: 60),
 
-                            // Feedback
                             ListTile(
                               leading: _buildIcon(Icons.feedback_outlined, Colors.orange),
                               title: const Text("Send Feedback", style: TextStyle(fontWeight: FontWeight.w600)),
                               trailing: const Icon(Icons.chevron_right),
                               onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Feedback form coming soon!")));
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const FeedbackScreen(),
+                                  ),
+                                );
                               },
                             ),
                           ],
@@ -127,7 +139,6 @@ class ProfileScreen extends StatelessWidget {
 
                       const SizedBox(height: 32),
 
-                      // 3. Logout Button
                       SizedBox(
                         width: double.infinity,
                         height: 55,
@@ -153,11 +164,10 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // Quick helper widget for beautiful icons
   Widget _buildIcon(IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
       child: Icon(icon, color: color),
     );
   }

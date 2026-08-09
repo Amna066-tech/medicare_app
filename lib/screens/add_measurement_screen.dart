@@ -4,7 +4,9 @@ import '../models/measurement_model.dart';
 import '../services/database_service.dart';
 
 class AddMeasurementScreen extends StatefulWidget {
-  const AddMeasurementScreen({super.key});
+  final String? patientId; // Added parameter
+
+  const AddMeasurementScreen({super.key, this.patientId});
 
   @override
   State<AddMeasurementScreen> createState() => _AddMeasurementScreenState();
@@ -28,10 +30,11 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // FIXED: Added the required "time" parameter back in!
+      final String targetUid = widget.patientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+
       MeasurementModel newMeasurement = MeasurementModel(
         id: '',
-        userId: FirebaseAuth.instance.currentUser!.uid,
+        userId: targetUid,
         type: _typeController.text,
         value: _valueController.text,
         unit: _unitController.text,
@@ -96,7 +99,7 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
                 children: [
                   Text("Track Your Health", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white)),
                   SizedBox(height: 8),
-                  Text("Log your daily vitals to keep a history of your progress.", style: TextStyle(fontSize: 14, color: Colors.white70)),
+                  Text("Log daily vitals to keep a history of progress.", style: TextStyle(fontSize: 14, color: Colors.white70)),
                 ],
               ),
             ),

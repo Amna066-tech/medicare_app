@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'add_activity_screen.dart';
 
 class ActivityListScreen extends StatelessWidget {
-  const ActivityListScreen({super.key});
+  final String? patientId; // Added optional constructor variable
+
+  const ActivityListScreen({super.key, this.patientId});
 
   void deleteActivity(BuildContext context, String docId) async {
     try {
@@ -21,7 +23,8 @@ class ActivityListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final String targetUid = patientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+    final bool isCaregiverView = patientId != null;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -32,10 +35,13 @@ class ActivityListScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AddActivityScreen())),
+        onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddActivityScreen())
+        ),
         backgroundColor: const Color(0xFF4CA1AF),
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text("Log Activity", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: Text(isCaregiverView ? "Log Patient Activity" : "Log Activity", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
@@ -60,7 +66,7 @@ class ActivityListScreen extends StatelessWidget {
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('activities')
-                  .where('userId', isEqualTo: user?.uid)
+                  .where('userId', isEqualTo: targetUid)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -68,7 +74,7 @@ class ActivityListScreen extends StatelessWidget {
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(
-                    child: Text("No activities logged.\nTime to get moving!", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
+                    child: Text("No activities logged yet.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
                   );
                 }
 
@@ -88,7 +94,7 @@ class ActivityListScreen extends StatelessWidget {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         leading: Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: Colors.orange.withAlpha(25), shape: BoxShape.circle),
                           child: const Icon(Icons.directions_run, color: Colors.orange),
                         ),
                         title: Text(data['type'] ?? 'Activity', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C3E50), fontSize: 18)),

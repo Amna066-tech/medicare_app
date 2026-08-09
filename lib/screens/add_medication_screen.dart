@@ -5,7 +5,9 @@ import '../services/database_service.dart';
 import '../services/notification_service.dart';
 
 class AddMedicationScreen extends StatefulWidget {
-  const AddMedicationScreen({super.key});
+  final String? patientId;
+
+  const AddMedicationScreen({super.key, this.patientId});
 
   @override
   State<AddMedicationScreen> createState() => _AddMedicationScreenState();
@@ -14,8 +16,9 @@ class AddMedicationScreen extends StatefulWidget {
 class _AddMedicationScreenState extends State<AddMedicationScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dosageController = TextEditingController();
+  // NEW: Controller to capture disease name details
+  final TextEditingController _diseaseController = TextEditingController();
 
-  // FIXED: Restored these missing variables!
   String _selectedFrequency = "Once a day";
   int _doseCount = 1;
   List<TimeOfDay?> _selectedTimes = [null];
@@ -28,7 +31,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     NotificationService().requestPermission();
   }
 
-  // FIXED: Restored the logic to update how many clocks appear
   void _updateFrequency(String? newFrequency) {
     if (newFrequency == null) return;
     setState(() {
@@ -64,16 +66,16 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     );
     if (picked != null) {
       setState(() {
-        _selectedTimes[index] = picked; // FIXED: Saving to the correct list slot
+        _selectedTimes[index] = picked;
       });
     }
   }
 
   void saveMedication() async {
-    // FIXED: Checking the list of times instead of a single time
-    if (_nameController.text.isEmpty || _selectedTimes.contains(null)) {
+    // UPDATED VALIDATION: Ensures disease name value isn't sent empty
+    if (_nameController.text.isEmpty || _diseaseController.text.isEmpty || _selectedTimes.contains(null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Name and ALL Reminder Times are required!")),
+        const SnackBar(content: Text("Name, Condition/Disease and ALL Reminder Times are required!")),
       );
       return;
     }
@@ -81,23 +83,26 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     setState(() => _isLoading = true);
 
     List<String> formattedTimes = _selectedTimes.map((time) => time!.format(context)).toList();
+    final String targetUid = widget.patientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
 
+    // Create model instance containing the disease variable
     MedicationModel newMed = MedicationModel(
       id: '',
-      userId: FirebaseAuth.instance.currentUser!.uid,
+      userId: targetUid,
       name: _nameController.text,
       dosage: _dosageController.text,
+      diseaseName: _diseaseController.text, // NEW FIELD DEFINED
       frequency: _selectedFrequency,
       startDate: DateTime.now().toString().substring(0, 10),
       endDate: "Ongoing",
       reminderTimes: formattedTimes,
     );
 
+    // If DatabaseService accepts a MedicationModel, update its addMedication(newMed) implementation to save toMap()
     String res = await DatabaseService().addMedication(newMed);
 
     if (res == "success") {
       try {
-        // FIXED: Loop through all alarms to schedule them!
         for (int i = 0; i < _selectedTimes.length; i++) {
           final time = _selectedTimes[i]!;
           final now = DateTime.now();
@@ -140,6 +145,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   void dispose() {
     _nameController.dispose();
     _dosageController.dispose();
+    _diseaseController.dispose(); // NEW DISPOSE DISMISSAL
     super.dispose();
   }
 
@@ -171,7 +177,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                 children: [
                   Text("New Prescription", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white)),
                   SizedBox(height: 8),
-                  Text("Set up your medication and exact alarms.", style: TextStyle(fontSize: 14, color: Colors.white70)),
+                  Text("Set up medication and exact alarms.", style: TextStyle(fontSize: 14, color: Colors.white70)),
                 ],
               ),
             ),
@@ -201,7 +207,6 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // FIXED: The proper dynamic dropdown
                       DropdownButtonFormField<String>(
                         decoration: InputDecoration(
                           labelText: "Frequency",
@@ -220,12 +225,20 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                             .toList(),
                         onChanged: _updateFrequency,
                       ),
+                      const SizedBox(height: 16),
+
+                      // NEW DESIGN COMPONENT: Custom disease field layout positioned directly underneath frequency
+                      _buildInputField(
+                        controller: _diseaseController,
+                        label: "Health Condition / Disease",
+                        hint: "e.g., Blood Pressure, Headache",
+                        icon: Icons.health_and_safety_outlined,
+                      ),
 
                       const SizedBox(height: 28),
                       const Text("Reminder Times", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2C3E50))),
                       const SizedBox(height: 12),
 
-                      // FIXED: Dynamic list of time pickers
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),

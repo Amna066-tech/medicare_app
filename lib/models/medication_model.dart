@@ -3,16 +3,18 @@ class MedicationModel {
   String userId;
   String name;
   String dosage;
+  String diseaseName; // UPDATED: Added field for health condition
   String frequency;
   String startDate;
   String endDate;
-  List<dynamic> reminderTimes; // UPGRADED: This is now a List to hold multiple alarms!
+  List<dynamic> reminderTimes;
 
   MedicationModel({
     required this.id,
     required this.userId,
     required this.name,
     required this.dosage,
+    required this.diseaseName, // UPDATED
     required this.frequency,
     required this.startDate,
     required this.endDate,
@@ -26,10 +28,11 @@ class MedicationModel {
       userId: map['userId'] ?? '',
       name: map['name'] ?? '',
       dosage: map['dosage'] ?? '',
+      diseaseName: map['diseaseName'] ?? 'General Care', // UPDATED
       frequency: map['frequency'] ?? 'Once a day',
       startDate: map['startDate'] ?? '',
       endDate: map['endDate'] ?? '',
-      reminderTimes: map['reminderTimes'] ?? [], // Safely grabs the list
+      reminderTimes: map['reminderTimes'] ?? [],
     );
   }
 
@@ -39,10 +42,11 @@ class MedicationModel {
       'userId': userId,
       'name': name,
       'dosage': dosage,
+      'diseaseName': diseaseName, // UPDATED
       'frequency': frequency,
       'startDate': startDate,
       'endDate': endDate,
-      'reminderTimes': reminderTimes, // Saves the list to the database
+      'reminderTimes': reminderTimes,
     };
   }
 }

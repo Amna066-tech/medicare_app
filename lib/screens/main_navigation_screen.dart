@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-// Your 4 screen imports!
-import 'reminders_dashboard.dart';
+import 'home_screen.dart';
 import 'measurement_tracker_screen.dart';
-import 'chatbot_screen.dart'; // ADDED THIS IMPORT
+import 'chatbot_screen.dart';
 import 'profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+  final String? viewingPatientId;
+
+  const MainNavigationScreen({super.key, this.viewingPatientId});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -15,14 +16,6 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
-
-  // FIXED: The list now has exactly 4 items to match your 4 buttons!
-  final List<Widget> _screens = [
-    const RemindersDashboard(),       // Index 0: Reminders
-    const MeasurementTrackerScreen(), // Index 1: Tracker
-    const ChatbotScreen(),            // Index 2: Chatbot (This was missing!)
-    const ProfileScreen(),            // Index 3: Profile
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -32,24 +25,29 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // The body changes based on which tab is selected
-      body: _screens[_selectedIndex],
+    // FIXED: Only pass viewingPatientId to HomeScreen
+    final List<Widget> screens = [
+      HomeScreen(viewingPatientId: widget.viewingPatientId),
+      const MeasurementTrackerScreen(),
+      const ChatbotScreen(),
+      const ProfileScreen(),
+    ];
 
-      // Your custom Bottom Navigation Bar
+    return Scaffold(
+      body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Keeps all text visible
+        type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFF4CA1AF), // Your app's theme color
+        selectedItemColor: const Color(0xFF4CA1AF),
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
         elevation: 8,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_active_outlined),
-            activeIcon: Icon(Icons.notifications_active),
-            label: 'Reminders',
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.monitor_weight_outlined),

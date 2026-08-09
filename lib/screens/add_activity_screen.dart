@@ -5,7 +5,9 @@ import '../services/database_service.dart';
 import '../services/notification_service.dart';
 
 class AddActivityScreen extends StatefulWidget {
-  const AddActivityScreen({super.key});
+  final String? patientId; // Added parameter
+
+  const AddActivityScreen({super.key, this.patientId});
 
   @override
   State<AddActivityScreen> createState() => _AddActivityScreenState();
@@ -90,11 +92,11 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
 
     try {
       String formattedDate = _selectedDate!.toString().substring(0, 10);
-      // FIXED: Removed the unused formattedTime variable!
+      final String targetUid = widget.patientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
 
       ActivityModel newActivity = ActivityModel(
         id: '',
-        userId: FirebaseAuth.instance.currentUser!.uid,
+        userId: targetUid,
         type: _nameController.text,
         value: _durationController.text,
         unit: _notesController.text,
@@ -231,7 +233,6 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
                         activeColor: const Color(0xFF4CA1AF),
                         secondary: Container(
                           padding: const EdgeInsets.all(8),
-                          // FIXED: Replaced withOpacity to clear the blue warnings!
                           decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), shape: BoxShape.circle),
                           child: const Icon(Icons.notifications_active_outlined, color: Colors.orange),
                         ),
@@ -296,7 +297,6 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        // FIXED: Replaced withOpacity
         decoration: BoxDecoration(
             color: const Color(0xFF4CA1AF).withValues(alpha: 0.05),
             border: Border.all(color: const Color(0xFF4CA1AF).withValues(alpha: 0.3)),
@@ -304,23 +304,16 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: Icon(icon, color: const Color(0xFF4CA1AF)),
-            ),
+            Icon(icon, color: const Color(0xFF4CA1AF)),
             const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                  label,
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: isPlaceholder ? FontWeight.normal : FontWeight.bold,
-                      color: isPlaceholder ? Colors.grey[600] : const Color(0xFF2C3E50)
-                  )
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: isPlaceholder ? FontWeight.normal : FontWeight.bold,
+                color: isPlaceholder ? Colors.grey[600] : const Color(0xFF2C3E50),
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
       ),

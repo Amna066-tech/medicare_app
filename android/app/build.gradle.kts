@@ -3,8 +3,9 @@ plugins {
     // START: FlutterFire Configuration
     id("com.google.gms.google-services")
     // END: FlutterFire Configuration
-    id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+
+    // FIXED: Hooking into the 2.2.20 plugin loader we declared in settings
+    id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -50,5 +51,6 @@ flutter {
 
 // ADDED THIS BLOCK FOR NOTIFICATIONS:
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    // Upgraded version from 2.0.4 to 2.1.4 as required by notifications plugin
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

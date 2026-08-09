@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_model.dart'; // Imports the model we just made!
+import '../models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -13,31 +13,37 @@ class AuthService {
     required String name,
     required String dateOfBirth,
     required String gender,
+    required String role, // ADDED: Role is now required during signup
   }) async {
     String res = "Some error occurred";
     try {
-      // 1. Register the user in Firebase Authentication
-      UserCredential cred = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      if (email.isNotEmpty && password.isNotEmpty && name.isNotEmpty) {
+        // 1. Register the user in Firebase Authentication
+        UserCredential cred = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
 
-      // 2. Create our UserModel using the data they provided
-      UserModel userModel = UserModel(
-        uid: cred.user!.uid,
-        name: name,
-        email: email,
-        dateOfBirth: dateOfBirth,
-        gender: gender,
-      );
+        // 2. Create our UserModel using the data they provided
+        UserModel userModel = UserModel(
+          uid: cred.user!.uid,
+          name: name,
+          email: email,
+          dateOfBirth: dateOfBirth,
+          gender: gender,
+          role: role, // PASSED: Role to the model
+        );
 
-      // 3. Save the extra user details to Firestore database
-      await _firestore
-          .collection('users')
-          .doc(cred.user!.uid)
-          .set(userModel.toMap());
+        // 3. Save the extra user details to Firestore database
+        await _firestore
+            .collection('users')
+            .doc(cred.user!.uid)
+            .set(userModel.toMap());
 
-      res = "success";
+        res = "success";
+      } else {
+        res = "Please enter all the fields";
+      }
     } on FirebaseAuthException catch (err) {
       res = err.message ?? "Authentication Error";
     } catch (err) {
@@ -53,8 +59,12 @@ class AuthService {
   }) async {
     String res = "Some error occurred";
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      res = "success";
+      if (email.isNotEmpty && password.isNotEmpty) {
+        await _auth.signInWithEmailAndPassword(email: email, password: password);
+        res = "success";
+      } else {
+        res = "Please enter all the fields";
+      }
     } on FirebaseAuthException catch (err) {
       res = err.message ?? "Authentication Error";
     } catch (err) {

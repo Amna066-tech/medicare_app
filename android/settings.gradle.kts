@@ -23,6 +23,8 @@ plugins {
     // START: FlutterFire Configuration
     id("com.google.gms.google-services") version("4.3.15") apply false
     // END: FlutterFire Configuration
+
+    // FIXED: Explicitly declaring 2.2.20 to silence the validation warning permanently
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
 }
 

@@ -12,104 +12,94 @@ class DoctorPatientDetailScreen extends StatefulWidget {
 }
 
 class _DoctorPatientDetailScreenState extends State<DoctorPatientDetailScreen> {
-  final TextEditingController _recommendationController = TextEditingController();
-  bool _caregiverRequired = false;
-  bool _isSubmitting = false;
+  final TextEditingController _notesController = TextEditingController();
+  bool _needCaregiver = false;
+  bool _isSaving = false;
 
-  void _submitRecommendation() async {
-    if (_recommendationController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please write a recommendation first.")));
-      return;
-    }
-
-    setState(() => _isSubmitting = true);
-
-    try {
-      // 1. Save the recommendation directly to Firebase
-      await FirebaseFirestore.instance.collection('recommendations').add({
-        'patientId': widget.patientId,
-        'doctorNotes': _recommendationController.text.trim(),
-        'caregiverRequired': _caregiverRequired,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Recommendation sent successfully!")));
-        _recommendationController.clear();
-        setState(() => _caregiverRequired = false);
-        Navigator.pop(context); // Close the bottom sheet
-      }
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
-    }
-
-    setState(() => _isSubmitting = false);
-  }
-
-  void _openRecommendationSheet() {
-    showModalBottomSheet(
+  void _showAddRecommendationDialog() {
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (context) {
         return StatefulBuilder(
-            builder: (BuildContext context, StateSetter setModalState) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                  left: 24, right: 24, top: 24,
-                ),
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text("Recommend for ${widget.patientName}", style: const TextStyle(fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Add Recommendation", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
-                    const SizedBox(height: 16),
-
-                    // The Text Input for Doctor's Notes
                     TextField(
-                      controller: _recommendationController,
+                      controller: _notesController,
                       maxLines: 4,
                       decoration: InputDecoration(
-                        hintText: "Enter dosage adjustments, diet plans, or health advice...",
+                        labelText: "Doctor's Notes / Prescriptions",
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF4CA1AF), width: 2)),
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // The Caregiver Toggle Switch
-                    Container(
-                      decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                      child: SwitchListTile(
-                        title: const Text("Recommend Caregiver?", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
-                        subtitle: const Text("Flags this patient for caregiver assistance."),
-                        activeColor: Colors.orange,
-                        value: _caregiverRequired,
-                        onChanged: (bool value) {
-                          setModalState(() {
-                            _caregiverRequired = value;
-                          });
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity, height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4CA1AF), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        onPressed: _isSubmitting ? null : _submitRecommendation,
-                        child: _isSubmitting
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text("SEND TO PATIENT", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(child: Text("Recommend adding a Caregiver?")),
+                        Switch(
+                          value: _needCaregiver,
+                          activeColor: const Color(0xFF4CA1AF),
+                          onChanged: (val) {
+                            setDialogState(() {
+                              _needCaregiver = val;
+                            });
+                          },
+                        ),
+                      ],
+                    )
                   ],
                 ),
-              );
-            }
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CA1AF),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: _isSaving ? null : () async {
+                    String text = _notesController.text.trim();
+                    if (text.isEmpty) return;
+
+                    setDialogState(() => _isSaving = true);
+
+                    try {
+                      await FirebaseFirestore.instance.collection('recommendations').add({
+                        'patientId': widget.patientId,
+                        'doctorNotes': text,
+                        'needCaregiver': _needCaregiver,
+                        'timestamp': FieldValue.serverTimestamp(),
+                      });
+
+                      if (mounted) {
+                        _notesController.clear();
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Recommendation sent successfully!")),
+                        );
+                      }
+                    } catch (e) {
+                      debugPrint("Firestore save error: $e");
+                    } finally {
+                      setDialogState(() => _isSaving = false);
+                    }
+                  },
+                  child: _isSaving
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text("Send to Patient"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -118,20 +108,17 @@ class _DoctorPatientDetailScreenState extends State<DoctorPatientDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text("${widget.patientName}'s Profile", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: const Color(0xFF2C3E50),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: const Center(
-        child: Text("Click the button below to send a recommendation.", style: TextStyle(color: Colors.grey, fontSize: 16)),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openRecommendationSheet,
+        title: Text(widget.patientName),
         backgroundColor: const Color(0xFF4CA1AF),
-        icon: const Icon(Icons.medical_services, color: Colors.white),
-        label: const Text("Recommend", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+      body: Center(
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2C3E50), foregroundColor: Colors.white),
+          icon: const Icon(Icons.add_comment),
+          label: const Text("Write Recommendation Note"),
+          onPressed: _showAddRecommendationDialog,
+        ),
       ),
     );
   }
