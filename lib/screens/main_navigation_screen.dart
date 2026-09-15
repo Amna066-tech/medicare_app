@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'home_screen.dart';
 import 'measurement_tracker_screen.dart';
+import 'pharmacy_screen.dart'; // <-- 1. Import your new Pharmacy screen here
 import 'chatbot_screen.dart';
 import 'profile_screen.dart';
 
@@ -25,16 +26,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // FIXED: Only pass viewingPatientId to HomeScreen
+    // 2. Add PharmacyScreen into the list between Tracker and Chatbot
     final List<Widget> screens = [
       HomeScreen(viewingPatientId: widget.viewingPatientId),
       const MeasurementTrackerScreen(),
+      const PharmacyScreen(), // Index 2: Pharmacy
       const ChatbotScreen(),
       const ProfileScreen(),
     ];
 
     return Scaffold(
-      body: screens[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
@@ -53,6 +58,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             icon: Icon(Icons.monitor_weight_outlined),
             activeIcon: Icon(Icons.monitor_weight),
             label: 'Tracker',
+          ),
+          // 3. Add Pharmacy icon right between Tracker and Chatbot
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_pharmacy_outlined),
+            activeIcon: Icon(Icons.local_pharmacy),
+            label: 'Pharmacy',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),

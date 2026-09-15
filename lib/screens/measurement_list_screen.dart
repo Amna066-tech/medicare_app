@@ -29,7 +29,7 @@ class MeasurementListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Measurements Data Log"),
-        backgroundColor: const Color(0xFF4CA1AF),
+        backgroundColor: const Color(0xFF1550A6),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -63,14 +63,12 @@ class MeasurementListScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF4CA1AF),
+        backgroundColor: const Color(0xFF1550A6),
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AddMeasurementScreen(patientId: currentUserId), // Corrected call line 44 setup
-            ),
+          showDialog(
+            context: context,
+            builder: (_) => AddMeasurementScreen(patientId: currentUserId),
           );
         },
       ),

@@ -2,132 +2,175 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
-import 'main_navigation_screen.dart'; // Navigating to MainNavigationScreen instead of raw HomeScreen
+import 'main_navigation_screen.dart';
+import 'feedback_screen.dart';
 
-class CaregiverDashboardScreen extends StatelessWidget {
+class CaregiverDashboardScreen extends StatefulWidget {
   const CaregiverDashboardScreen({super.key});
 
   @override
+  State<CaregiverDashboardScreen> createState() => _CaregiverDashboardScreenState();
+}
+
+class _CaregiverDashboardScreenState extends State<CaregiverDashboardScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final User? currentUser = FirebaseAuth.instance.currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _logout() async {
+    await FirebaseAuth.instance.signOut();
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
+    const primaryBlue = Color(0xFF1976D2); // Standard Material Blue
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA), // Soft background style
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text("Caregiver Dashboard"),
-        backgroundColor: const Color(0xFF2C4356), // Matches dark app bar theme
-        foregroundColor: Colors.white,
+        title: const Text("Caregiver Dashboard", style: TextStyle(color: Colors.white)),
+        backgroundColor: primaryBlue,
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              if (context.mounted) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              }
+            icon: const Icon(Icons.feedback_outlined),
+            tooltip: 'Send Feedback',
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackScreen()));
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
           )
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
+          tabs: const [
+            Tab(icon: Icon(Icons.mail_outline), text: "Incoming"),
+            Tab(icon: Icon(Icons.people_outline), text: "Accepted"),
+          ],
+        ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        // Listens to all connection requests tied to this caregiver's email address
-        stream: FirebaseFirestore.instance
-            .collection('caregiver_requests')
-            .where('caregiverEmail', isEqualTo: currentUser?.email)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text(
-                "No patient requests yet.",
-                style: TextStyle(color: Colors.black54, fontSize: 16),
-              ),
-            );
-          }
-
-          var allRequests = snapshot.data!.docs;
-
-          // Split the documents into two distinct reactive UI categories
-          var pendingRequests = allRequests.where((doc) => doc['status'] == 'pending').toList();
-          var activeConnections = allRequests.where((doc) => doc['status'] == 'accepted').toList();
-
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // --- SECTION 1: INCOMING REQUESTS (PENDING APPROVAL) ---
-              if (pendingRequests.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.only(left: 4, bottom: 8),
-                  child: Text(
-                    "Incoming Patient Requests",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2C4356)),
-                  ),
-                ),
-                ...pendingRequests.map((doc) {
-                  var data = doc.data() as Map<String, dynamic>;
-                  return _buildRequestCard(
-                    context: context,
-                    docId: doc.id,
-                    patientName: data['patientName'] ?? 'Unknown Patient',
-                    patientEmail: data['patientEmail'] ?? 'No Email Provided',
-                    isPending: true,
-                    patientId: data['patientId'],
-                  );
-                }),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 8),
-              ],
-
-              // --- SECTION 2: MY CONNECTED PATIENTS (ACTIVE VIEWS) ---
-              const Padding(
-                padding: EdgeInsets.only(left: 4, bottom: 12),
-                child: Text(
-                  "My Connected Patients",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50)),
-                ),
-              ),
-
-              if (activeConnections.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32.0),
-                    child: Text(
-                      "No accepted patient accounts linked yet.",
-                      style: TextStyle(color: Colors.grey[500], fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                )
-              else
-                ...activeConnections.map((doc) {
-                  var data = doc.data() as Map<String, dynamic>;
-                  return _buildRequestCard(
-                    context: context,
-                    docId: doc.id,
-                    patientName: data['patientName'] ?? 'Unknown Patient',
-                    patientEmail: data['patientEmail'] ?? 'No Email Provided',
-                    isPending: false,
-                    patientId: data['patientId'],
-                  );
-                }),
-            ],
-          );
-        },
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildIncomingTab(),
+          _buildAcceptedTab(),
+        ],
       ),
     );
   }
 
-  // Helper widget builder to generate consistent, modern card styles matching your UI
+  Widget _buildIncomingTab() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('caregiver_requests')
+          .where('caregiverEmail', isEqualTo: currentUser?.email)
+          .where('status', isEqualTo: 'pending')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text(
+              "No new incoming requests",
+              style: TextStyle(color: Colors.black45, fontSize: 16),
+            ),
+          );
+        }
+
+        var requests = snapshot.data!.docs;
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            var doc = requests[index];
+            var data = doc.data() as Map<String, dynamic>;
+            
+            return _buildRequestCard(
+              docId: doc.id,
+              patientName: data['patientName'] ?? 'Unknown Patient',
+              patientEmail: data['patientEmail'] ?? 'No Email Provided',
+              isPending: true,
+              patientId: data['patientId'],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAcceptedTab() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('caregiver_requests')
+          .where('caregiverEmail', isEqualTo: currentUser?.email)
+          .where('status', isEqualTo: 'accepted')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text(
+              "No accepted patient accounts linked yet.",
+              style: TextStyle(color: Colors.black45, fontSize: 16),
+            ),
+          );
+        }
+
+        var requests = snapshot.data!.docs;
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            var doc = requests[index];
+            var data = doc.data() as Map<String, dynamic>;
+            
+            return _buildRequestCard(
+              docId: doc.id,
+              patientName: data['patientName'] ?? 'Unknown Patient',
+              patientEmail: data['patientEmail'] ?? 'No Email Provided',
+              isPending: false,
+              patientId: data['patientId'],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildRequestCard({
-    required BuildContext context,
     required String docId,
     required String patientName,
     required String patientEmail,
@@ -146,10 +189,10 @@ class CaregiverDashboardScreen extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: isPending ? Colors.orange.withOpacity(0.15) : const Color(0xFF4FA4B8).withOpacity(0.15),
+                  backgroundColor: isPending ? Colors.orange.withOpacity(0.15) : const Color(0xFF1976D2).withOpacity(0.15),
                   child: Icon(
                     isPending ? Icons.person_add_alt_1 : Icons.person,
-                    color: isPending ? Colors.orange : const Color(0xFF4FA4B8),
+                    color: isPending ? Colors.orange : const Color(0xFF1976D2),
                     size: 24,
                   ),
                 ),
@@ -178,43 +221,43 @@ class CaregiverDashboardScreen extends StatelessWidget {
               height: 44,
               child: isPending
                   ? ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  elevation: 0,
-                ),
-                onPressed: () async {
-                  await FirebaseFirestore.instance
-                      .collection('caregiver_requests')
-                      .doc(docId)
-                      .update({'status': 'accepted'});
-                },
-                child: const Text(
-                  "Accept Access Request",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              )
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      onPressed: () async {
+                        await FirebaseFirestore.instance
+                            .collection('caregiver_requests')
+                            .doc(docId)
+                            .update({'status': 'accepted'});
+                      },
+                      child: const Text(
+                        "Accept Access Request",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    )
                   : ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4FA4B8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  elevation: 0,
-                ),
-                icon: const Icon(Icons.dashboard_customize_outlined, color: Colors.white, size: 20),
-                label: const Text(
-                  "Open Patient Dashboard",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () {
-                  // Navigating to MainNavigationScreen with viewingPatientId attached
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MainNavigationScreen(viewingPatientId: patientId),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1976D2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      icon: const Icon(Icons.dashboard_customize_outlined, color: Colors.white, size: 20),
+                      label: const Text(
+                        "Open Patient Dashboard",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () {
+                        if (patientId == null) return;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MainNavigationScreen(viewingPatientId: patientId),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

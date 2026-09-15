@@ -27,12 +27,15 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
   }
 
   // Safe worker to delete appointments
-  void deleteAppointment(BuildContext context, String docId) async {
+  void deleteAppointment(BuildContext context, String docId, int? notificationId) async {
     try {
+      if (notificationId != null) {
+        await NotificationService().cancelNotification(notificationId);
+      }
       await FirebaseFirestore.instance.collection('appointments').doc(docId).delete();
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Appointment removed successfully.")),
+          const SnackBar(content: Text("Appointment deleted and reminder cancelled.")),
         );
       }
     } catch (e) {
@@ -93,7 +96,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
     setState(() => _isSaving = true);
 
     // Merge date and time objects safely into a single DateTime instance
-    final combinedDateTime = DateTime(
+    DateTime combinedDateTime = DateTime(
       _selectedDate!.year,
       _selectedDate!.month,
       _selectedDate!.day,
@@ -102,8 +105,13 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
     );
 
     try {
+      final String targetUid = widget.patientId ?? user.uid;
+
+      // Save appointment
+      int notificationId = combinedDateTime.millisecondsSinceEpoch.remainder(100000);
+
       await FirebaseFirestore.instance.collection('appointments').add({
-        'patientId': user.uid,
+        'patientId': targetUid,
         'patientName': user.displayName ?? 'Patient User',
         'doctorName': nameText,
         'doctorEmail': 'manual_reminder@medicare.com', // Placeholder tracker token
@@ -111,6 +119,32 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
         'appointmentDate': Timestamp.fromDate(combinedDateTime),
         'status': 'accepted', // Auto-accepted since it's a private tracker/reminder
         'createdAt': FieldValue.serverTimestamp(),
+        'notificationId': notificationId,
+      });
+
+      if (combinedDateTime.isBefore(DateTime.now())) {
+        if (DateTime.now().difference(combinedDateTime).inMinutes < 5) {
+          combinedDateTime = DateTime.now().add(const Duration(seconds: 5));
+        }
+      }
+
+      if (combinedDateTime.isAfter(DateTime.now())) {
+        await NotificationService().scheduleReminderNotification(
+          id: notificationId,
+          itemTitle: nameText,
+          category: 'Appointment',
+          subtitle: 'Appointment at ${_selectedTime!.format(context)}',
+          scheduledTime: combinedDateTime,
+        );
+      }
+
+      // ADDED: Dual-write to medical_history so it displays on your Medical History dashboard
+      await FirebaseFirestore.instance.collection('medical_history').add({
+        'userId': targetUid,
+        'title': 'Appointment with Dr. $nameText (${reasonText.isEmpty ? "General Checkup" : reasonText})',
+        'category': 'Appointment',
+        'status': 'Scheduled',
+        'timestamp': FieldValue.serverTimestamp(),
       });
 
       // Clear input fields safely
@@ -122,7 +156,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
       if (mounted) {
         Navigator.pop(context); // Dismiss form dialog sheet
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Reminder saved to your appointments list!")),
+          const SnackBar(content: Text("Reminder & History saved successfully!")),
         );
       }
     } catch (e) {
@@ -276,9 +310,10 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
             );
           }
 
+          final targetUid = widget.patientId ?? user.uid;
           final docs = snapshot.data!.docs.where((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            return data['patientId'] == user.uid || data['doctorEmail'] == user.email;
+            return data['patientId'] == targetUid || data['patientId'] == user.uid || data['doctorEmail'] == user.email;
           }).toList();
 
           if (docs.isEmpty) {
@@ -366,7 +401,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                           alignment: Alignment.centerRight,
                           child: IconButton(
                             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                            onPressed: () => deleteAppointment(context, docId),
+                            onPressed: () => deleteAppointment(context, docId, data['notificationId'] as int?),
                           ),
                         ),
                       ]

@@ -4,7 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'reminders_dashboard.dart';
 import 'measurement_list_screen.dart';
 import 'activity_list_screen.dart';
-import 'medical_professional_screen.dart'; // Target directory hub screen
+import 'medical_professional_screen.dart';
+import 'feedback_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? viewingPatientId;
@@ -42,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool isCaregiverViewing = widget.viewingPatientId != null;
+    bool isExternalViewing = widget.viewingPatientId != null;
     final String streamTargetUserId = widget.viewingPatientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
@@ -52,13 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             // Header Section
             Container(
-              padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 30),
+              padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 40),
+              width: double.infinity,
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF4CA1AF), Color(0xFF2C3E50)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: Color(0xFF1550A6),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
@@ -70,19 +68,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (isCaregiverViewing)
+                      const Icon(Icons.shield, color: Colors.white, size: 40),
+                      if (isExternalViewing)
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
                           onPressed: () => Navigator.pop(context),
                         )
                       else
-                        const SizedBox(width: 40),
-                      const Icon(Icons.health_and_safety, color: Colors.white, size: 40),
+                        IconButton(
+                          icon: const Icon(Icons.feedback_outlined, color: Colors.white, size: 28),
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackScreen())),
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   const Text("Hello,", style: TextStyle(color: Colors.white70, fontSize: 18)),
-                  Text(_userName, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                  Text(_userName, style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  const Text("Let's manage your daily health routine.", style: TextStyle(color: Colors.white70, fontSize: 14)),
                 ],
               ),
             ),
@@ -137,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withAlpha(13), // Fixed deprecated withOpacity
+                            color: Colors.black.withAlpha(13),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -148,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF4CA1AF).withAlpha(25), // Fixed deprecated withOpacity
+                              color: const Color(0xFF4CA1AF).withAlpha(25),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.note_alt_outlined, color: Color(0xFF4CA1AF)),
@@ -183,15 +186,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    // Caregiver Recommendation Banner with Request Button
+                    // Caregiver Recommendation Banner
                     if (caregiverRecommended)
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withAlpha(25), // Fixed deprecated withOpacity
+                          color: Colors.orange.withAlpha(25),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.orange.withAlpha(76)), // Fixed deprecated withOpacity
+                          border: Border.all(color: Colors.orange.withAlpha(76)),
                         ),
                         child: Row(
                           children: [
@@ -208,7 +211,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            // Request Caregiver Button Integration
                             TextButton(
                               style: TextButton.styleFrom(
                                 backgroundColor: const Color(0xFF855D10).withAlpha(30),
@@ -281,42 +283,55 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Grid Buttons Dashboard Layout
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               child: GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
+                childAspectRatio: 0.9,
                 children: [
                   _buildCard(
-                    Icons.medication,
-                    "Medications",
-                        () => Navigator.push(
+                    icon: Icons.medication,
+                    iconColor: const Color(0xFF1550A6),
+                    iconBgColor: const Color(0xFF1550A6).withOpacity(0.1),
+                    title: "Medications",
+                    subtitle: "Pills & Drops",
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => RemindersDashboard(patientId: streamTargetUserId)),
                     ),
                   ),
                   _buildCard(
-                    Icons.monitor_weight_outlined,
-                    "Measurements",
-                        () => Navigator.push(
+                    icon: Icons.straighten,
+                    iconColor: Colors.cyan,
+                    iconBgColor: Colors.cyan.withOpacity(0.1),
+                    title: "Measurements",
+                    subtitle: "Weight & BP",
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => MeasurementListScreen(patientId: streamTargetUserId)),
                     ),
                   ),
                   _buildCard(
-                    Icons.directions_run,
-                    "Activities",
-                        () => Navigator.push(
+                    icon: Icons.directions_run,
+                    iconColor: Colors.teal,
+                    iconBgColor: Colors.teal.withOpacity(0.1),
+                    title: "Activities",
+                    subtitle: "Walking & Water",
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => ActivityListScreen(patientId: streamTargetUserId)),
                     ),
                   ),
                   _buildCard(
-                    Icons.badge_outlined,
-                    "Medical Professional",
-                        () => Navigator.push(
+                    icon: Icons.badge,
+                    iconColor: Colors.orange,
+                    iconBgColor: Colors.orange.withOpacity(0.1),
+                    title: "Medical Professional",
+                    subtitle: "",
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const MedicalProfessionalScreen()),
                     ),
@@ -330,36 +345,61 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCard(IconData icon, String title, VoidCallback onTap) {
+  Widget _buildCard({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(24),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(13), // Fixed deprecated withOpacity
-              blurRadius: 5,
-              offset: const Offset(0, 2),
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             )
           ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: const Color(0xFF4CA1AF)),
-            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 32, color: iconColor),
+            ),
+            const SizedBox(height: 16),
             Text(
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C3E50),
-                fontSize: 13,
+                color: Color(0xFF1E293B),
+                fontSize: 15,
               ),
             ),
+            if (subtitle.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+            ]
           ],
         ),
       ),

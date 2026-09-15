@@ -10,14 +10,26 @@ class MedicationListScreen extends StatelessWidget {
 
   const MedicationListScreen({super.key, this.patientId});
 
-  void updateDoseStatus(BuildContext context, String docId, int doseIndex, String status) async {
+  void updateDoseStatus(BuildContext context, String docId, int doseIndex, String status, String medName) async {
     try {
+      final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+      // 1. Update the medication dose status
       await FirebaseFirestore.instance.collection('medications').doc(docId).set({
         'doseStatuses': {
           doseIndex.toString(): status
         },
         'lastUpdated': DateTime.now().toString(),
       }, SetOptions(merge: true));
+
+      // 2. Add to Medical History
+      await FirebaseFirestore.instance.collection('medical_history').add({
+        'userId': currentUserId,
+        'title': "$medName - Dose ${doseIndex + 1} ($status)",
+        'category': 'Medication',
+        'status': status, // 'Taken' or 'Missed'
+        'timestamp': FieldValue.serverTimestamp(),
+      });
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Dose ${doseIndex + 1} marked as $status")));
@@ -51,15 +63,15 @@ class MedicationListScreen extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("My Medications", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: const Color(0xFF4CA1AF),
+        backgroundColor: const Color(0xFF1550A6),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       floatingActionButton: isCaregiverView
           ? null
           : FloatingActionButton.extended(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AddMedicationScreen())),
-        backgroundColor: const Color(0xFF4CA1AF),
+        onPressed: () => showDialog(context: context, builder: (context) => const AddMedicationScreen()),
+        backgroundColor: const Color(0xFF1550A6),
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text("Add Med", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
@@ -69,7 +81,7 @@ class MedicationListScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.only(bottom: 30, left: 24, right: 24, top: 10),
             decoration: const BoxDecoration(
-              color: Color(0xFF4CA1AF),
+              color: Color(0xFF1550A6),
               borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
             ),
             child: const Column(
@@ -90,7 +102,7 @@ class MedicationListScreen extends StatelessWidget {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF4CA1AF)));
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFF1550A6)));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(
@@ -108,8 +120,7 @@ class MedicationListScreen extends StatelessWidget {
 
                     List<dynamic> times = data['reminderTimes'] ?? [];
                     Map<String, dynamic> doseStatuses = data['doseStatuses'] ?? {};
-
-                    // NEW DATA EXTRACTION: Pull health condition string details cleanly
+                    String name = data['name'] ?? 'Unknown';
                     String diseaseName = data['diseaseName'] ?? 'General Care';
 
                     return Card(
@@ -138,9 +149,8 @@ class MedicationListScreen extends StatelessWidget {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(data['name'] ?? 'Unknown', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
-                                        // UPDATED UI: Includes health condition layout directly under subheadings
-                                        Text("For: $diseaseName", style: const TextStyle(color: Color(0xFF4CA1AF), fontWeight: FontWeight.w600, fontSize: 13)),
+                                        Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
+                                        Text("For: $diseaseName", style: const TextStyle(color: Color(0xFF1550A6), fontWeight: FontWeight.w600, fontSize: 13)),
                                         Text("${data['dosage']} • ${data['frequency']}", style: const TextStyle(color: Colors.grey)),
                                       ],
                                     ),
@@ -153,9 +163,9 @@ class MedicationListScreen extends StatelessWidget {
                                         MedicationModel currentMed = MedicationModel(
                                           id: docId,
                                           userId: data['userId'] ?? '',
-                                          name: data['name'] ?? '',
+                                          name: name,
                                           dosage: data['dosage'] ?? '',
-                                          diseaseName: diseaseName, // PASS TO EDIT
+                                          diseaseName: diseaseName,
                                           frequency: data['frequency'] ?? 'Once a day',
                                           startDate: data['startDate'] ?? '',
                                           endDate: data['endDate'] ?? '',
@@ -207,14 +217,14 @@ class MedicationListScreen extends StatelessWidget {
                                         : Row(
                                       children: [
                                         IconButton(
-                                          onPressed: () => updateDoseStatus(context, docId, doseIndex, "Missed"),
+                                          onPressed: () => updateDoseStatus(context, docId, doseIndex, "Missed", name),
                                           icon: const Icon(Icons.close, color: Colors.redAccent),
                                           tooltip: "Mark Missed",
                                           constraints: const BoxConstraints(),
                                           padding: const EdgeInsets.symmetric(horizontal: 8),
                                         ),
                                         IconButton(
-                                          onPressed: () => updateDoseStatus(context, docId, doseIndex, "Taken"),
+                                          onPressed: () => updateDoseStatus(context, docId, doseIndex, "Taken", name),
                                           icon: const Icon(Icons.check, color: Colors.green),
                                           tooltip: "Mark Taken",
                                           constraints: const BoxConstraints(),

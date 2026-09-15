@@ -140,6 +140,15 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
         'lastUpdated': DateTime.now().toString(),
       });
 
+      // ADDED: Dual-write to medical_history so it displays on the Medical History dashboard
+      await FirebaseFirestore.instance.collection('medical_history').add({
+        'userId': widget.medication.userId,
+        'title': 'Medication Updated: ${_nameController.text}',
+        'category': 'Medication',
+        'status': 'Updated',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
       // Reset the alarms for the new times
       for (int i = 0; i < _selectedTimes.length; i++) {
         final time = _selectedTimes[i]!;
@@ -150,10 +159,11 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
         }
         int notificationId = scheduledDate.millisecondsSinceEpoch.remainder(100000) + i;
 
-        await NotificationService().scheduleNotification(
+        await NotificationService().scheduleReminderNotification(
           id: notificationId,
-          title: "Time for Dose ${i + 1} of ${_nameController.text}!",
-          body: "Please take ${_dosageController.text}.",
+          itemTitle: "Dose ${i + 1} of ${_nameController.text}",
+          category: "Medication",
+          subtitle: "Please take ${_dosageController.text}.",
           scheduledTime: scheduledDate,
         );
       }

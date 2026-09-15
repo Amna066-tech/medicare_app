@@ -18,13 +18,33 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     if (text.isEmpty) return;
 
     setState(() => _isSending = true);
-    String userEmail = FirebaseAuth.instance.currentUser?.email ?? 'Anonymous';
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    String userEmail = currentUser?.email ?? 'Anonymous';
+    String userId = currentUser?.uid ?? 'unknown';
+    String userName = 'Unknown';
+    String role = 'Patient';
+
+    if (currentUser != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+          Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+          userName = data['name'] ?? 'Unknown';
+          role = data['role'] ?? 'Patient';
+        }
+      } catch (e) {
+        debugPrint("Error fetching user data for feedback: $e");
+      }
+    }
 
     try {
-      await FirebaseFirestore.instance.collection('app_feedback').add({
+      await FirebaseFirestore.instance.collection('feedback').add({
+        'userId': userId,
+        'userName': userName,
         'userEmail': userEmail,
+        'role': role,
         'feedbackText': text,
-        'timestamp': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
       });
 
       _feedbackController.clear();
@@ -45,7 +65,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Send Feedback"),
-        backgroundColor: const Color(0xFF4CA1AF),
+        backgroundColor: const Color(0xFF1550A6),
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -63,7 +83,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               decoration: InputDecoration(
                 hintText: "Type your feedback notes here...",
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFF4CA1AF)), borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFF1550A6)), borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 20),

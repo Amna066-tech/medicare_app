@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Note: Since custom claims are not yet set up for roles, this ruleset uses basic authentication checks.
+    // In production, you should lock down reads/writes based on the 'role' field in the user document or via custom claims.
+
+    // Allow logged in users to read and write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Pharmacy Requests Collection
+    match /pharmacy_requests/{requestId} {
+      // Patients can create requests linked to their own ID
+      allow create: if request.auth != null && request.resource.data.patientId == request.auth.uid;
+      
+      // Patients can read their own requests.
+      // Pharmacists (any authenticated user for now) can read and update.
+      allow read, update: if request.auth != null; 
+      
+      allow delete: if false; // Disallow deletion for now to preserve history
+    }
+
+    // Fallback: Default deny for everything else
+    match /{document=**} {
+      allow read, write: if request.auth != null; // Currently open to all authenticated users for development
+    }
+  }
+}

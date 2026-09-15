@@ -34,7 +34,7 @@ class _RemindersDashboardState extends State<RemindersDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Medication Reminders"),
-        backgroundColor: const Color(0xFF4CA1AF),
+        backgroundColor: const Color(0xFF1550A6),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -56,7 +56,7 @@ class _RemindersDashboardState extends State<RemindersDashboard> {
               var data = docs[index].data() as Map<String, dynamic>;
               String docId = docs[index].id;
               return ListTile(
-                leading: const Icon(Icons.medication, color: Color(0xFF4CA1AF)),
+                leading: const Icon(Icons.medication, color: Color(0xFF1550A6)),
                 title: Text(data['name'] ?? 'Unknown Medicine'),
                 subtitle: Text("Dosage: ${data['dosage'] ?? 'N/A'} — Time: ${data['time'] ?? 'N/A'}"),
                 trailing: IconButton(
@@ -69,14 +69,12 @@ class _RemindersDashboardState extends State<RemindersDashboard> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF4CA1AF),
+        backgroundColor: const Color(0xFF1550A6),
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AddMedicationScreen(patientId: currentUserId),
-            ),
+          showDialog(
+            context: context,
+            builder: (_) => AddMedicationScreen(patientId: currentUserId),
           );
         },
       ),

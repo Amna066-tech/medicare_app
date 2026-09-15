@@ -30,16 +30,16 @@ class ActivityListScreen extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("Activity Log", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: const Color(0xFF4CA1AF),
+        backgroundColor: const Color(0xFF1550A6),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddActivityScreen())
+        onPressed: () => showDialog(
+            context: context,
+            builder: (context) => AddActivityScreen(patientId: patientId)
         ),
-        backgroundColor: const Color(0xFF4CA1AF),
+        backgroundColor: const Color(0xFF1550A6),
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(isCaregiverView ? "Log Patient Activity" : "Log Activity", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
@@ -49,7 +49,7 @@ class ActivityListScreen extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.only(bottom: 30, left: 24, right: 24, top: 10),
             decoration: const BoxDecoration(
-              color: Color(0xFF4CA1AF),
+              color: Color(0xFF1550A6),
               borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
             ),
             child: const Column(
@@ -70,7 +70,7 @@ class ActivityListScreen extends StatelessWidget {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF4CA1AF)));
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFF1550A6)));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(

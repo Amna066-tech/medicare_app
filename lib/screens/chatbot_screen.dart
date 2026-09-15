@@ -13,7 +13,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final ScrollController _scrollController = ScrollController();
 
   // TODO: Replace this with your actual API key from Google AI Studio
-  static const String _apiKey = 'AIzaSyAO3IyeZbaQOCESHw0o3WnKsovm6LOBSts';
+  static const String _apiKey = 'YOUR_API_KEY_HERE';
 
   late final GenerativeModel _model;
   late final ChatSession _chat;
@@ -114,7 +114,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text("Medicare AI Assistant"),
-        backgroundColor: const Color(0xFF4CA1AF), // Your app's theme color
+        backgroundColor: const Color(0xFF1550A6), // Your app's theme color
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -138,7 +138,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(color: Color(0xFF4CA1AF)),
+              child: CircularProgressIndicator(color: Color(0xFF1550A6)),
             ),
 
           // The Input Field Area
@@ -171,7 +171,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 const SizedBox(width: 12),
                 Container(
                   decoration: const BoxDecoration(
-                    color: Color(0xFF4CA1AF),
+                    color: Color(0xFF1550A6),
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
@@ -196,7 +196,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: isUser ? const Color(0xFF4CA1AF) : Colors.white,
+          color: isUser ? const Color(0xFF1550A6) : Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(20),
             topRight: const Radius.circular(20),

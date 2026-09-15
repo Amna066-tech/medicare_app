@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/measurement_model.dart';
 import '../services/database_service.dart';
+import '../services/notification_service.dart';
 
 class AddMeasurementScreen extends StatefulWidget {
   final String? patientId; // Added parameter
@@ -13,16 +15,73 @@ class AddMeasurementScreen extends StatefulWidget {
 }
 
 class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
-  final TextEditingController _typeController = TextEditingController();
-  final TextEditingController _valueController = TextEditingController();
-  final TextEditingController _unitController = TextEditingController();
+  String _selectedCategory = "Blood Pressure";
+  String _selectedFrequency = "Once a day";
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay? _selectedTime;
 
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    NotificationService().requestPermission();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF1550A6),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF2C3E50),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF1550A6),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF2C3E50),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
   void saveMeasurement() async {
-    if (_typeController.text.isEmpty || _valueController.text.isEmpty) {
+    if (_selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in the Type and Value.")),
+        const SnackBar(content: Text("Reminder Time is required!")),
       );
       return;
     }
@@ -31,22 +90,53 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
 
     try {
       final String targetUid = widget.patientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+      String formattedDate = _selectedDate.toString().substring(0, 10);
+      String formattedTime = _selectedTime!.format(context);
 
       MeasurementModel newMeasurement = MeasurementModel(
         id: '',
         userId: targetUid,
-        type: _typeController.text,
-        value: _valueController.text,
-        unit: _unitController.text,
-        date: DateTime.now().toString().substring(0, 10),
-        time: TimeOfDay.now().format(context),
+        type: _selectedCategory,
+        value: 'N/A', // Omitted from UI, setting default
+        unit: 'N/A', // Omitted from UI, setting default
+        date: formattedDate,
+        time: formattedTime,
       );
 
       String res = await DatabaseService().addMeasurement(newMeasurement);
 
       if (res == "success") {
+        await FirebaseFirestore.instance.collection('medical_history').add({
+          'userId': targetUid,
+          'title': 'Measurement Reminder: $_selectedCategory',
+          'category': 'Measurement',
+          'status': 'Scheduled',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        DateTime scheduledDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
+        );
+
+        if (scheduledDate.isAfter(DateTime.now())) {
+          int notificationId = scheduledDate.millisecondsSinceEpoch.remainder(100000);
+          await NotificationService().scheduleReminderNotification(
+            id: notificationId,
+            itemTitle: _selectedCategory,
+            category: "Measurement",
+            subtitle: "Time to check your vitals.",
+            scheduledTime: scheduledDate,
+          );
+        }
+
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Measurement saved successfully!")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Measurement Reminder saved successfully!")),
+          );
           Navigator.pop(context);
         }
       } else {
@@ -64,127 +154,225 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
   }
 
   @override
-  void dispose() {
-    _typeController.dispose();
-    _valueController.dispose();
-    _unitController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text("Log Vitals", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: const Color(0xFF4CA1AF),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(bottom: 30, left: 24, right: 24, top: 10),
-              decoration: const BoxDecoration(
-                color: Color(0xFF4CA1AF),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: const Color(0xFFF2F4F7),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Add Measurement Reminder",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1E293B),
                 ),
               ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 24),
+              _buildDropdownField(
+                label: "Category",
+                value: _selectedCategory,
+                icon: Icons.monitor_heart,
+                items: ['Blood Pressure', 'Heart Rate', 'Weight', 'Blood Sugar'],
+                onChanged: (val) {
+                  if (val != null) setState(() => _selectedCategory = val);
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildDropdownField(
+                label: "Frequency",
+                value: _selectedFrequency,
+                icon: Icons.repeat,
+                items: ['Once a day', 'Twice a day', 'Weekly'],
+                onChanged: (val) {
+                  if (val != null) setState(() => _selectedFrequency = val);
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildDatePickerField(context),
+              const SizedBox(height: 16),
+              _buildTimePickerField(context),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text("Track Your Health", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white)),
-                  SizedBox(height: 8),
-                  Text("Log daily vitals to keep a history of progress.", style: TextStyle(fontSize: 14, color: Colors.white70)),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Cancel", style: TextStyle(color: Color(0xFF1550A6), fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : saveMeasurement,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1550A6),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      elevation: 0,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text("Save", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
                 ],
               ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Card(
-                elevation: 8,
-                shadowColor: Colors.black12,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("New Measurement", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2C3E50))),
-                      const SizedBox(height: 16),
-
-                      _buildInputField(
-                        controller: _typeController,
-                        label: "Measurement Type",
-                        hint: "e.g., Blood Pressure, Weight, Sugar",
-                        icon: Icons.monitor_heart_outlined,
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildInputField(
-                        controller: _valueController,
-                        label: "Value",
-                        hint: "e.g., 120/80, 70.5, 95",
-                        icon: Icons.calculate_outlined,
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildInputField(
-                        controller: _unitController,
-                        label: "Unit (Optional)",
-                        hint: "e.g., mmHg, kg, mg/dL",
-                        icon: Icons.straighten,
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 55,
-                        child: ElevatedButton(
-                          onPressed: saveMeasurement,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4CA1AF),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 2,
-                          ),
-                          child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('SAVE MEASUREMENT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInputField({required TextEditingController controller, required String label, required String hint, required IconData icon}) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: const Color(0xFF4CA1AF)),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF4CA1AF), width: 2),
+  Widget _buildDropdownField({
+    required String label,
+    required String value,
+    required IconData icon,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: value,
+              icon: const Padding(
+                padding: EdgeInsets.only(right: 16.0),
+                child: Icon(Icons.arrow_drop_down, color: Colors.grey),
+              ),
+              items: items
+                  .map((item) => DropdownMenuItem(
+                value: item,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 12),
+                    Icon(icon, color: const Color(0xFF1550A6)),
+                    const SizedBox(width: 12),
+                    Text(item, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ))
+                  .toList(),
+              onChanged: onChanged,
+            ),
+          ),
         ),
-        filled: true,
-        fillColor: Colors.grey[50],
-      ),
+        Positioned(
+          left: 12,
+          top: 0,
+          child: Container(
+            color: const Color(0xFFF2F4F7),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDatePickerField(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 8),
+          child: InkWell(
+            onTap: () => _selectDate(context),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_today, color: Color(0xFF1550A6)),
+                  const SizedBox(width: 12),
+                  Text(
+                    _selectedDate.toString().substring(0, 10),
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 12,
+          top: 0,
+          child: Container(
+            color: const Color(0xFFF2F4F7),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              "Start Date",
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimePickerField(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 8),
+          child: InkWell(
+            onTap: () => _selectTime(context),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.access_time, color: Color(0xFF1550A6)),
+                  const SizedBox(width: 12),
+                  Text(
+                    _selectedTime == null ? "Select time" : _selectedTime!.format(context),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: _selectedTime == null ? Colors.grey[600] : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 12,
+          top: 0,
+          child: Container(
+            color: const Color(0xFFF2F4F7),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              "Reminder Time",
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

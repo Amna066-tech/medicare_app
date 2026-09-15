@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/activity_model.dart';
 import '../services/database_service.dart';
 import '../services/notification_service.dart';
 
 class AddActivityScreen extends StatefulWidget {
-  final String? patientId; // Added parameter
+  final String? patientId;
 
   const AddActivityScreen({super.key, this.patientId});
 
@@ -14,14 +15,22 @@ class AddActivityScreen extends StatefulWidget {
 }
 
 class _AddActivityScreenState extends State<AddActivityScreen> {
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
 
-  DateTime? _selectedDate;
+  String _selectedType = 'Walking';
+  final List<String> _activityTypes = [
+    'Walking',
+    'Running',
+    'Cycling',
+    'Swimming',
+    'Yoga',
+    'Exercise',
+    'Other'
+  ];
+
+  DateTime _selectedDate = DateTime.now();
   TimeOfDay? _selectedTime;
 
-  bool _enableAlarm = false;
   bool _isLoading = false;
 
   @override
@@ -33,14 +42,14 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: _selectedDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime(2030),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF4CA1AF),
+              primary: Color(0xFF1550A6),
               onPrimary: Colors.white,
               onSurface: Color(0xFF2C3E50),
             ),
@@ -64,7 +73,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF4CA1AF),
+              primary: Color(0xFF1550A6),
               onPrimary: Colors.white,
               onSurface: Color(0xFF2C3E50),
             ),
@@ -81,9 +90,9 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   }
 
   void saveActivity() async {
-    if (_nameController.text.isEmpty || _selectedDate == null || _selectedTime == null) {
+    if (_durationController.text.isEmpty || _selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Activity Name, Date, and Time are required.")),
+        const SnackBar(content: Text("Duration and Time are required.")),
       );
       return;
     }
@@ -91,43 +100,50 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
     setState(() => _isLoading = true);
 
     try {
-      String formattedDate = _selectedDate!.toString().substring(0, 10);
+      String formattedDate = _selectedDate.toString().substring(0, 10);
       final String targetUid = widget.patientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
 
       ActivityModel newActivity = ActivityModel(
         id: '',
         userId: targetUid,
-        type: _nameController.text,
+        type: _selectedType,
         value: _durationController.text,
-        unit: _notesController.text,
+        unit: '', // Removed notes field
         date: formattedDate,
       );
 
       String res = await DatabaseService().addActivity(newActivity);
 
       if (res == "success") {
-        if (_enableAlarm) {
-          DateTime scheduledDate = DateTime(
-              _selectedDate!.year, _selectedDate!.month, _selectedDate!.day,
-              _selectedTime!.hour, _selectedTime!.minute
-          );
+        await FirebaseFirestore.instance.collection('medical_history').add({
+          'userId': targetUid,
+          'title': 'Activity: $_selectedType (${_durationController.text})',
+          'category': 'Activity',
+          'status': 'Scheduled',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
-          if (scheduledDate.isAfter(DateTime.now())) {
-            int notificationId = scheduledDate.millisecondsSinceEpoch.remainder(100000);
-            await NotificationService().scheduleNotification(
-              id: notificationId,
-              title: "Activity Reminder!",
-              body: "It's time for your ${_nameController.text} (${_durationController.text}).",
-              scheduledTime: scheduledDate,
-            );
-          }
+        DateTime scheduledDate = DateTime(
+            _selectedDate.year, _selectedDate.month, _selectedDate.day,
+            _selectedTime!.hour, _selectedTime!.minute
+        );
+
+        if (scheduledDate.isAfter(DateTime.now())) {
+          int notificationId = scheduledDate.millisecondsSinceEpoch.remainder(100000);
+          await NotificationService().scheduleReminderNotification(
+            id: notificationId,
+            itemTitle: _selectedType,
+            category: "Activity",
+            subtitle: "Duration: ${_durationController.text}",
+            scheduledTime: scheduledDate,
+          );
         }
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(_enableAlarm ? "Activity & Alarm saved!" : "Activity logged successfully!")
-          ));
-          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Activity & Reminder saved successfully!"))
+          );
+          Navigator.pop(context); // Close dialog
         }
       } else {
         if (mounted) {
@@ -138,183 +154,176 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error saving: $e")));
       }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-
-    setState(() => _isLoading = false);
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
     _durationController.dispose();
-    _notesController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text("Log Activity", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: const Color(0xFF4CA1AF),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(bottom: 30, left: 24, right: 24, top: 10),
-              decoration: const BoxDecoration(
-                color: Color(0xFF4CA1AF),
-                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Healthy Habits", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white)),
-                  SizedBox(height: 8),
-                  Text("Plan your exercises and set reminders.", style: TextStyle(fontSize: 14, color: Colors.white70)),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Card(
-                elevation: 8,
-                shadowColor: Colors.black12,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Activity Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2C3E50))),
-                      const SizedBox(height: 16),
-
-                      _buildInputField(controller: _nameController, label: "Activity Name", hint: "e.g., Morning Walk, Yoga", icon: Icons.directions_run),
-                      const SizedBox(height: 16),
-                      _buildInputField(controller: _durationController, label: "Duration / Amount", hint: "e.g., 30 mins, 2 Liters", icon: Icons.timer_outlined),
-                      const SizedBox(height: 16),
-                      _buildInputField(controller: _notesController, label: "Notes", hint: "e.g., Don't forget water!", icon: Icons.notes),
-
-                      const SizedBox(height: 28),
-                      const Divider(),
-                      const SizedBox(height: 16),
-
-                      const Text("When is this happening?", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF2C3E50))),
-                      const SizedBox(height: 16),
-
-                      _buildPickerButton(
-                        context: context,
-                        label: _selectedDate == null ? "Tap to select Date" : _selectedDate!.toString().substring(0, 10),
-                        icon: Icons.calendar_today,
-                        isPlaceholder: _selectedDate == null,
-                        onTap: () => _selectDate(context),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildPickerButton(
-                        context: context,
-                        label: _selectedTime == null ? "Tap to select Time" : _selectedTime!.format(context),
-                        icon: Icons.access_time,
-                        isPlaceholder: _selectedTime == null,
-                        onTap: () => _selectTime(context),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      SwitchListTile(
-                        title: const Text("Set Reminder Alarm", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
-                        subtitle: const Text("Get a push notification at this time.", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                        value: _enableAlarm,
-                        activeColor: const Color(0xFF4CA1AF),
-                        secondary: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), shape: BoxShape.circle),
-                          child: const Icon(Icons.notifications_active_outlined, color: Colors.orange),
-                        ),
-                        onChanged: (bool value) {
-                          setState(() {
-                            _enableAlarm = value;
-                          });
-                        },
-                        contentPadding: EdgeInsets.zero,
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 55,
-                        child: ElevatedButton(
-                          onPressed: saveActivity,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4CA1AF),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 2,
-                          ),
-                          child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('SAVE ACTIVITY', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                        ),
-                      ),
-                    ],
-                  ),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      elevation: 8,
+      backgroundColor: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Add Activity",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF111111),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+              const SizedBox(height: 24),
 
-  Widget _buildInputField({required TextEditingController controller, required String label, required String hint, required IconData icon}) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: const Color(0xFF4CA1AF)),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF4CA1AF), width: 2),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-      ),
-    );
-  }
-
-  Widget _buildPickerButton({required BuildContext context, required String label, required IconData icon, required bool isPlaceholder, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        decoration: BoxDecoration(
-            color: const Color(0xFF4CA1AF).withValues(alpha: 0.05),
-            border: Border.all(color: const Color(0xFF4CA1AF).withValues(alpha: 0.3)),
-            borderRadius: BorderRadius.circular(12)
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: const Color(0xFF4CA1AF)),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: isPlaceholder ? FontWeight.normal : FontWeight.bold,
-                color: isPlaceholder ? Colors.grey[600] : const Color(0xFF2C3E50),
+              // Type Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedType,
+                decoration: InputDecoration(
+                  labelText: "Type",
+                  prefixIcon: const Icon(Icons.fitness_center, color: Color(0xFF1550A6)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFF1550A6), width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+                items: _activityTypes.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF111111))),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedType = newValue!;
+                  });
+                },
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+
+              // Duration Input
+              TextFormField(
+                controller: _durationController,
+                decoration: InputDecoration(
+                  hintText: "Duration (e.g. 30 mins)",
+                  prefixIcon: const Icon(Icons.timer, color: Color(0xFF1550A6)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFF1550A6), width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Date Picker
+              TextFormField(
+                readOnly: true,
+                onTap: () => _selectDate(context),
+                decoration: InputDecoration(
+                  hintText: _selectedDate.toString().substring(0, 10),
+                  hintStyle: const TextStyle(color: Color(0xFF111111)),
+                  prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF1550A6)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFF1550A6), width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Time Picker
+              TextFormField(
+                readOnly: true,
+                onTap: () => _selectTime(context),
+                decoration: InputDecoration(
+                  hintText: _selectedTime == null ? "Time" : _selectedTime!.format(context),
+                  hintStyle: TextStyle(
+                    color: _selectedTime == null ? Colors.grey[600] : const Color(0xFF111111),
+                  ),
+                  prefixIcon: const Icon(Icons.access_time, color: Color(0xFF1550A6)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFF1550A6), width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Action Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF1550A6),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : saveActivity,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1550A6),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text(
+                            "Save",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

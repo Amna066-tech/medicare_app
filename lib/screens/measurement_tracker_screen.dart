@@ -1,122 +1,324 @@
 import 'package:flutter/material.dart';
-import 'add_measurement_screen.dart'; // Assuming you still have your add screen!
+import 'package:intl/intl.dart';
 
-class MeasurementTrackerScreen extends StatelessWidget {
+class MeasurementTrackerScreen extends StatefulWidget {
   const MeasurementTrackerScreen({super.key});
 
   @override
+  State<MeasurementTrackerScreen> createState() => _MeasurementTrackerScreenState();
+}
+
+class _MeasurementTrackerScreenState extends State<MeasurementTrackerScreen> {
+  String _selectedCategory = 'Blood Pressure';
+  final List<String> _categories = ['Blood Pressure', 'Body Weight', 'Blood Sugar'];
+
+  final TextEditingController _systolicController = TextEditingController();
+  final TextEditingController _diastolicController = TextEditingController();
+  final TextEditingController _singleValueController = TextEditingController();
+
+  final List<Map<String, dynamic>> _history = [
+    {
+      'category': 'Body Weight',
+      'value': '36 kg',
+      'date': '2026-09-11',
+      'isAbnormal': false,
+    },
+    {
+      'category': 'Blood Pressure',
+      'value': '3/45 mmHg',
+      'date': '2026-09-11',
+      'isAbnormal': true,
+    },
+    {
+      'category': 'Blood Pressure',
+      'value': '253/196 mmHg',
+      'date': '2026-09-11',
+      'isAbnormal': true,
+    }
+  ];
+
+  bool _isAbnormal(String category, String val1, [String? val2]) {
+    if (category == 'Blood Pressure' && val2 != null) {
+      int? sys = int.tryParse(val1);
+      int? dia = int.tryParse(val2);
+      if (sys != null && dia != null) {
+        // Only mark as red if it is HIGH
+        if (sys > 120 || dia > 80) {
+          return true;
+        }
+      }
+      return false;
+    } else if (category == 'Blood Sugar') {
+      int? sugar = int.tryParse(val1);
+      // Only mark as red if it is HIGH
+      if (sugar != null && sugar > 140) return true;
+      return false;
+    }
+    return false;
+  }
+
+  void _recordMeasurement() {
+    String value = '';
+    bool abnormal = false;
+
+    if (_selectedCategory == 'Blood Pressure') {
+      if (_systolicController.text.isEmpty || _diastolicController.text.isEmpty) return;
+      value = '${_systolicController.text}/${_diastolicController.text} mmHg';
+      abnormal = _isAbnormal(_selectedCategory, _systolicController.text, _diastolicController.text);
+    } else {
+      if (_singleValueController.text.isEmpty) return;
+      String unit = _selectedCategory == 'Body Weight' ? 'kg' : 'mg/dL';
+      value = '${_singleValueController.text} $unit';
+      abnormal = _isAbnormal(_selectedCategory, _singleValueController.text);
+    }
+
+    setState(() {
+      _history.insert(0, {
+        'category': _selectedCategory,
+        'value': value,
+        'date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        'isAbnormal': abnormal,
+      });
+      _systolicController.clear();
+      _diastolicController.clear();
+      _singleValueController.clear();
+    });
+  }
+
+  @override
+  void dispose() {
+    _systolicController.dispose();
+    _diastolicController.dispose();
+    _singleValueController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    const Color primaryColor = Color(0xFF1A65C4);
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text("Health Tracker", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: const Color(0xFF4CA1AF),
-        elevation: 0,
-        automaticallyImplyLeading: false, // Hides back button
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const AddMeasurementScreen()));
-        },
-        backgroundColor: const Color(0xFF4CA1AF),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text("Add Vitals", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      ),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.only(bottom: 30, left: 24, right: 24, top: 10),
-            decoration: const BoxDecoration(
-              color: Color(0xFF4CA1AF),
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 20,
+              left: 24,
+              right: 24,
+              bottom: 30,
             ),
-            child: const Column(
+            decoration: const BoxDecoration(
+              color: primaryColor,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Vital Signs", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white)),
-                SizedBox(height: 8),
-                Text("Monitor your BP, Sugar, and Weight.", style: TextStyle(fontSize: 14, color: Colors.white70)),
+                const Text(
+                  "Health Tracker",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "Category",
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                DropdownButton<String>(
+                  value: _selectedCategory,
+                  isExpanded: true,
+                  dropdownColor: primaryColor,
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  underline: Container(
+                    height: 1,
+                    color: Colors.white38,
+                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  items: _categories.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        _selectedCategory = newValue;
+                        _systolicController.clear();
+                        _diastolicController.clear();
+                        _singleValueController.clear();
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+                if (_selectedCategory == 'Blood Pressure')
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _systolicController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Systolic',
+                            labelStyle: TextStyle(color: Colors.white70),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: TextField(
+                          controller: _diastolicController,
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            labelText: 'Diastolic',
+                            labelStyle: TextStyle(color: Colors.white70),
+                            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+                            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  TextField(
+                    controller: _singleValueController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: _selectedCategory == 'Body Weight' ? 'Weight (kg)' : 'Blood Sugar (mg/dL)',
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+                      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                    ),
+                  ),
+                const SizedBox(height: 30),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _recordMeasurement,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      "Record Measurement",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(24),
-              children: [
-                _buildTrackerCard(
-                  title: "Blood Pressure (BP)",
-                  subtitle: "Track your systolic and diastolic",
-                  icon: Icons.favorite,
-                  color: Colors.redAccent,
-                  recentValue: "120/80 mmHg",
-                ),
-                const SizedBox(height: 16),
-                _buildTrackerCard(
-                  title: "Blood Sugar",
-                  subtitle: "Fasting & Post-meal glucose",
-                  icon: Icons.water_drop,
-                  color: Colors.blueAccent,
-                  recentValue: "95 mg/dL",
-                ),
-                const SizedBox(height: 16),
-                _buildTrackerCard(
-                  title: "Body Weight",
-                  subtitle: "Track your BMI and weight goals",
-                  icon: Icons.monitor_weight,
-                  color: Colors.teal,
-                  recentValue: "72 kg",
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // A custom widget to make beautiful, consistent cards
-  Widget _buildTrackerCard({required String title, required String subtitle, required IconData icon, required Color color, required String recentValue}) {
-    return Card(
-      elevation: 4,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 32),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "History",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                    child: Text("Recent: $recentValue", style: TextStyle(fontWeight: FontWeight.w600, color: color)),
-                  )
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: _history.isEmpty
+                        ? const Center(
+                            child: Text(
+                              "No records found.",
+                              style: TextStyle(color: Colors.grey, fontSize: 16),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: EdgeInsets.zero,
+                            itemCount: _history.length,
+                            separatorBuilder: (context, index) => const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final item = _history[index];
+                              final isAbnormal = item['isAbnormal'] as bool;
+                              return Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8F9FB),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: isAbnormal ? const Color(0xFFFFEBEE) : const Color(0xFFE3F2FD),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.show_chart,
+                                        color: isAbnormal ? Colors.red : Colors.blue,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item['value'],
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: isAbnormal ? Colors.red : Colors.black87,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            item['category'],
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      item['date'],
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
