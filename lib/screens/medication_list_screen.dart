@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'add_medication_screen.dart';
 import 'edit_medication_screen.dart';
 import '../models/medication_model.dart';
+import '../services/database_service.dart';
 
 class MedicationListScreen extends StatelessWidget {
   final String? patientId;
@@ -30,6 +31,11 @@ class MedicationListScreen extends StatelessWidget {
         'status': status, // 'Taken' or 'Missed'
         'timestamp': FieldValue.serverTimestamp(),
       });
+
+      // 3. Decrement stock if Taken
+      if (status == "Taken") {
+        await DatabaseService().processMedicationIntake(docId);
+      }
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Dose ${doseIndex + 1} marked as $status")));
@@ -60,192 +66,163 @@ class MedicationListScreen extends StatelessWidget {
     final bool isCaregiverView = patientId != null;
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("My Medications", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text("Medication Reminders", style: TextStyle(color: Colors.white, fontSize: 20)),
         backgroundColor: const Color(0xFF1550A6),
-        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
       ),
-      floatingActionButton: isCaregiverView
-          ? null
-          : FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => showDialog(context: context, builder: (context) => const AddMedicationScreen()),
         backgroundColor: const Color(0xFF1550A6),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text("Add Med", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.only(bottom: 30, left: 24, right: 24, top: 10),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1550A6),
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Daily Routine", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white)),
-                SizedBox(height: 8),
-                Text("Manage your prescriptions and track every dose.", style: TextStyle(fontSize: 14, color: Colors.white70)),
-              ],
-            ),
-          ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('medications')
+            .where('userId', isEqualTo: targetUid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF1550A6)));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Text("No medications found.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
+            );
+          }
 
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('medications')
-                  .where('userId', isEqualTo: targetUid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF1550A6)));
-                }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(
-                    child: Text("No medications found.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
-                  );
-                }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              var doc = snapshot.data!.docs[index];
+              var data = doc.data() as Map<String, dynamic>;
+              String docId = doc.id;
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    var doc = snapshot.data!.docs[index];
-                    var data = doc.data() as Map<String, dynamic>;
-                    String docId = doc.id;
+              List<dynamic> times = data['reminderTimes'] ?? [];
+              String name = data['name'] ?? 'Unknown';
+              String diseaseName = data['diseaseName'] ?? 'General Care';
+              String dosage = data['dosage'] ?? '1';
+              String frequency = data['frequency'] ?? 'Once a day';
+              String startDate = data['startDate'] ?? 'N/A';
+              int? stock = data['stock'] as int?;
+              
+              String formattedTimes = times.isNotEmpty ? times.join(", ") : "No time set";
 
-                    List<dynamic> times = data['reminderTimes'] ?? [];
-                    Map<String, dynamic> doseStatuses = data['doseStatuses'] ?? {};
-                    String name = data['name'] ?? 'Unknown';
-                    String diseaseName = data['diseaseName'] ?? 'General Care';
-
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                          color: Colors.blue.withOpacity(0.1),
-                                          shape: BoxShape.circle
-                                      ),
-                                      child: const Icon(Icons.medication, color: Colors.blue),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
-                                        Text("For: $diseaseName", style: const TextStyle(color: Color(0xFF1550A6), fontWeight: FontWeight.w600, fontSize: 13)),
-                                        Text("${data['dosage']} • ${data['frequency']}", style: const TextStyle(color: Colors.grey)),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                if (!isCaregiverView)
-                                  PopupMenuButton<String>(
-                                    onSelected: (value) {
-                                      if (value == 'edit') {
-                                        MedicationModel currentMed = MedicationModel(
-                                          id: docId,
-                                          userId: data['userId'] ?? '',
-                                          name: name,
-                                          dosage: data['dosage'] ?? '',
-                                          diseaseName: diseaseName,
-                                          frequency: data['frequency'] ?? 'Once a day',
-                                          startDate: data['startDate'] ?? '',
-                                          endDate: data['endDate'] ?? '',
-                                          reminderTimes: times,
-                                        );
-                                        Navigator.push(context, MaterialPageRoute(builder: (context) => EditMedicationScreen(medication: currentMed)));
-                                      } else if (value == 'delete') {
-                                        deleteMedication(context, docId);
-                                      }
-                                    },
-                                    itemBuilder: (context) => [
-                                      const PopupMenuItem(value: 'edit', child: Text("Edit")),
-                                      const PopupMenuItem(value: 'delete', child: Text("Delete", style: TextStyle(color: Colors.red))),
-                                    ],
-                                  )
-                              ],
-                            ),
-                            const Divider(height: 24),
-
-                            ...List.generate(times.length, (doseIndex) {
-                              String currentStatus = doseStatuses[doseIndex.toString()] ?? "Pending";
-                              bool isLocked = currentStatus != "Pending";
-
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                        "Dose ${doseIndex + 1} (${times[doseIndex]})",
-                                        style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2C3E50))
-                                    ),
-
-                                    isLocked
-                                        ? Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                          color: currentStatus == "Taken" ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(20)
-                                      ),
-                                      child: Text(
-                                          currentStatus,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: currentStatus == "Taken" ? Colors.green : Colors.red
-                                          )
-                                      ),
-                                    )
-                                        : Row(
-                                      children: [
-                                        IconButton(
-                                          onPressed: () => updateDoseStatus(context, docId, doseIndex, "Missed", name),
-                                          icon: const Icon(Icons.close, color: Colors.redAccent),
-                                          tooltip: "Mark Missed",
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                                        ),
-                                        IconButton(
-                                          onPressed: () => updateDoseStatus(context, docId, doseIndex, "Taken", name),
-                                          icon: const Icon(Icons.check, color: Colors.green),
-                                          tooltip: "Mark Taken",
-                                          constraints: const BoxConstraints(),
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFAFAFA),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left Icon
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEBF3FC),
+                        shape: BoxShape.circle,
                       ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+                      child: const Icon(Icons.medication, color: Color(0xFF1550A6), size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    
+                    // Main Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                          const SizedBox(height: 12),
+                          
+                          Row(
+                            children: [
+                              const Icon(Icons.science, color: Color(0xFF1550A6), size: 18),
+                              const SizedBox(width: 8),
+                              Text("Dosage: $dosage", style: const TextStyle(color: Color(0xFF1550A6), fontWeight: FontWeight.w600, fontSize: 14)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          
+                          Row(
+                            children: [
+                              const Icon(Icons.access_time, color: Colors.grey, size: 18),
+                              const SizedBox(width: 8),
+                              Text(startDate, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 26),
+                            child: Text(formattedTimes, style: const TextStyle(color: Color(0xFF1550A6), fontWeight: FontWeight.bold, fontSize: 14)),
+                          ),
+                          const SizedBox(height: 12),
+                          
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEBF3FC),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(frequency, style: const TextStyle(color: Color(0xFF1550A6), fontSize: 12, fontWeight: FontWeight.w500)),
+                          ),
+                          
+                          if (stock != null) ...[
+                             const SizedBox(height: 8),
+                             Row(
+                               children: [
+                                 const Icon(Icons.inventory_2_outlined, color: Colors.grey, size: 18),
+                                 const SizedBox(width: 8),
+                                 Text("Stock: $stock", style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                               ],
+                             )
+                          ]
+                        ],
+                      ),
+                    ),
+                    
+                    // Right Edit/Delete Icon
+                    Column(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Color(0xFF1550A6)),
+                          onPressed: () {
+                            MedicationModel currentMed = MedicationModel(
+                              id: docId,
+                              userId: data['userId'] ?? '',
+                              name: name,
+                              dosage: data['dosage'] ?? '',
+                              diseaseName: diseaseName,
+                              frequency: data['frequency'] ?? 'Once a day',
+                              startDate: data['startDate'] ?? '',
+                              endDate: data['endDate'] ?? '',
+                              reminderTimes: times,
+                              selectedDates: data['selectedDates'] != null 
+                                  ? List<String>.from(data['selectedDates']) 
+                                  : [data['startDate'] ?? ''],
+                              stock: stock,
+                            );
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => EditMedicationScreen(medication: currentMed)));
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () => deleteMedication(context, docId),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

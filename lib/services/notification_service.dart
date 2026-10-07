@@ -58,7 +58,9 @@ class NotificationService {
     required String itemTitle,
     required String category,
     String? subtitle,
+    String? medicationId, // Optional because measurements don't have it
     required DateTime scheduledTime,
+    bool repeatDaily = true,
   }) async {
     // Lazy initialization for Hot Reloads or if init() was missed
     try {
@@ -79,6 +81,7 @@ class NotificationService {
       'itemTitle': itemTitle,
       'category': category,
       'subtitle': subtitle,
+      'medicationId': medicationId,
     });
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -109,7 +112,30 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
+      matchDateTimeComponents: repeatDaily ? DateTimeComponents.time : null,
+    );
+  }
+
+  Future<void> showInstantNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await flutterLocalNotificationsPlugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'medicare_alerts_channel',
+          'Health Alerts',
+          channelDescription: 'Important alerts for low stock and missed meds',
+          importance: Importance.max,
+          priority: Priority.max,
+        ),
+      ),
+      payload: payload,
     );
   }
 

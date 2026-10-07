@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,7 +11,8 @@ import 'emergency_contacts_screen.dart';
 import 'feedback_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final String? viewingPatientId;
+  const ProfileScreen({super.key, this.viewingPatientId});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -29,11 +31,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    if (user == null) return;
+    final targetUid = widget.viewingPatientId ?? user?.uid;
+    if (targetUid == null) return;
     try {
       DocumentSnapshot doc = await FirebaseFirestore.instance
           .collection('users')
-          .doc(user!.uid)
+          .doc(targetUid)
           .get();
 
       if (doc.exists && doc.data() != null) {
@@ -60,9 +63,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _pickAndUploadImage() async {
     if (user == null) return;
 
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
+      source: source,
       imageQuality: 70,
     );
 
@@ -71,16 +96,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isUploading = true);
 
     try {
-      File file = File(image.path);
-
-      // Upload file to Firebase Storage
-      Reference storageRef = FirebaseStorage.instance
-          .ref()
-          .child('profile_pictures')
-          .child('${user!.uid}.jpg');
-
-      await storageRef.putFile(file);
-      String downloadUrl = await storageRef.getDownloadURL();
+      // Read image as bytes and convert to base64 to bypass Firebase Storage
+      final bytes = await image.readAsBytes();
+      String base64Image = "data:image/jpeg;base64,${base64Encode(bytes)}";
+      String downloadUrl = base64Image;
 
       // Save URL to Firestore database
       await FirebaseFirestore.instance.collection('users').doc(user!.uid).set({
@@ -90,7 +109,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }, SetOptions(merge: true));
 
       // Update Firebase Auth profile
-      await user!.updatePhotoURL(downloadUrl);
+      try {
+        await user!.updatePhotoURL(downloadUrl);
+      } catch (_) {}
 
       if (mounted) {
         setState(() {
@@ -125,7 +146,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final email = user?.email ?? "No Email";
+    // we don't have email for other users fetched yet, but for simplicity, use current user's email or generic if viewing other
+    final email = widget.viewingPatientId != null ? "Patient Account" : (user?.email ?? "No Email");
+    final String targetUid = widget.viewingPatientId ?? user?.uid ?? '';
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -135,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
-      body: user == null
+      body: targetUid.isEmpty
           ? const Center(child: Text("Please log in to view your profile."))
           : SingleChildScrollView(
         child: Column(
@@ -167,7 +190,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             radius: 50,
                             backgroundColor: const Color(0xFF2C3E50),
                             backgroundImage: (_photoUrl != null && _photoUrl!.isNotEmpty)
-                                ? NetworkImage(_photoUrl!)
+                                ? (_photoUrl!.startsWith('data:image') 
+                                    ? MemoryImage(base64Decode(_photoUrl!.split(',').last)) as ImageProvider
+                                    : NetworkImage(_photoUrl!))
                                 : null,
                             child: (_photoUrl == null || _photoUrl!.isEmpty)
                                 ? const Icon(Icons.person, size: 50, color: Colors.white)
@@ -228,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => MedicalHistoryScreen(userId: user!.uid),
+                                builder: (_) => MedicalHistoryScreen(userId: targetUid),
                               ),
                             );
                           },

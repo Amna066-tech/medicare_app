@@ -1,0 +1,300 @@
+% Algorithms 1-21
+
+\textbf{Algorithm 1: Splash Screen}\\
+\textit{Input:} App starts, user login status\\
+\textit{Output:} User is sent to Home screen or Login screen\\
+\textit{Steps:}
+\begin{enumerate}
+    \item App opens and splash screen is shown.
+    \item App checks if the user is already logged in.
+    \item If user is logged in, open Home screen.
+    \item If user is not logged in, open Login screen.
+    \item Splash screen closes.
+\end{enumerate}
+
+\textbf{Algorithm 2: Sign Up}\\
+\textit{Input:} Name, email, date of birth, gender, password\\
+\textit{Output:} New account is created, user goes to Login screen\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Sign Up screen.
+    \item User enters name, email, DOB, gender, and password. When user clicks Doctor, Caregiver, Pharmacist option, they enter license number or speciality and send request to admin for approval/rejection.
+    \item App checks all fields are filled correctly.
+    \item If something is wrong, show error message.
+    \item If all correct, create the account.
+    \item Send a verification email to the user.
+    \item Take user to Login screen.
+\end{enumerate}
+
+\textbf{Algorithm 3: Login}\\
+\textit{Input:} Email and password\\
+\textit{Output:} User is logged in and goes to Home screen\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Login screen.
+    \item User enters email and password.
+    \item App checks that fields are not empty.
+    \item If empty, show error message.
+    \item App checks email and password are correct.
+    \item If email is not verified, ask user to verify first.
+    \item If correct, take user to Home screen.
+    \item If user forgot password, send a reset link to their email.
+\end{enumerate}
+
+\textbf{Algorithm 4: Patient Module}\\
+\textit{Input:} Patient login, health task details\\
+\textit{Output:} Patient manages all health tasks in one place\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Patient logs in and opens Home screen.
+    \item Patient can add medication reminders.
+    \item Patient can set reminders for BP, sugar, and weight.
+    \item Patient can set reminders for daily activities.
+    \item Patient can book an appointment with a doctor.
+    \item Patient can view doctor recommendations.
+    \item Patient can mark tasks as taken or missed.
+    \item Patient can view health history in Profile.
+\end{enumerate}
+
+\textbf{Algorithm 5: Doctor Module}\\
+\textit{Input:} Doctor login, patient profile\\
+\textit{Output:} Doctor views patient data and gives recommendations\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Doctor logs in with email and password.
+    \item Doctor opens the patient list.
+    \item Doctor selects a patient to view.
+    \item Doctor sees patient's medicines, measurements, and reminder history.
+    \item Doctor checks if patient is taking medicines on time.
+    \item Doctor writes recommendations like medicine changes or checkup schedule.
+    \item Doctor decides if patient needs a caregiver or can manage alone.
+    \item Patient can see doctor's notes in their profile.
+    \item Doctor logs out when done.
+\end{enumerate}
+
+\textbf{Algorithm 6: In-App Chat}\\
+\textit{Input:} Approved request status, text message\\
+\textit{Output:} Message exchange and payment detail sharing\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Doctor and caregiver approves patient request.
+    \item App updates status to Approved.
+    \item App enables Chat button for users.
+    \item User opens chat and types a message.
+    \item If any field is missing, display error message.
+    \item If valid, send and display message on screens.
+\end{enumerate}
+
+\textbf{Algorithm 7: Payment}\\
+\textit{Input:} Payment details (Doctor name, payment number, Transaction ID, receipt screenshot)\\
+\textit{Output:} Payment marked as Approved or Rejected\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Doctor opens the Payments tab in the Doctor Portal.
+    \item App shows all pending patient payments.
+    \item Doctor selects a payment to view the receipt screenshot and Transaction ID.
+    \item Doctor taps Approve or Reject.
+    \item App updates the payment status in the database.
+    \item Patient sees the updated status on their screen.
+\end{enumerate}
+
+\textbf{Algorithm 8: Caregiver Module}\\
+\textit{Input:} Caregiver login, patient profile\\
+\textit{Output:} Caregiver monitors and manages patient health tasks\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Caregiver logs in with email and password.
+    \item Caregiver opens assigned patient's profile.
+    \item Caregiver can see all active reminders of the patient.
+    \item Caregiver updates task status as taken or missed on behalf of patient.
+    \item Caregiver tracks patient's daily health progress.
+    \item Caregiver views patient's measurement records.
+    \item Caregiver makes sure patient does not miss any health task.
+    \item Caregiver logs out when done.
+\end{enumerate}
+
+\textbf{Algorithm 9: Medication Reminder}\\
+\textit{Input:} Medicine name, dosage, frequency, start date, end date, reminder time\\
+\textit{Output:} Medication reminder is saved and notification is set\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Medication screen.
+    \item User enters medicine name, dosage, frequency, and reminder time.
+    \item App checks all fields are filled.
+    \item If not filled, show error.
+    \item If filled, save the medication reminder.
+    \item Set a notification at the reminder time.
+    \item Show medicine in the reminder list.
+    \item User marks medicine as taken or missed when notification comes.
+    \item User can update or delete the reminder anytime.
+\end{enumerate}
+
+\textbf{Algorithm 10: Measurement Reminder}\\
+\textit{Input:} Measurement type (BP / Sugar / Weight), reminder time\\
+\textit{Output:} Measurement reminder is saved and notification is set\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Measurement screen.
+    \item User selects measurement type and sets reminder time.
+    \item App checks that type and time are selected.
+    \item If not selected, show error.
+    \item If selected, save the reminder.
+    \item Set a notification at the reminder time.
+    \item Show reminder in active list.
+    \item User can update or delete the reminder anytime.
+\end{enumerate}
+
+\textbf{Algorithm 11: Activity Reminder}\\
+\textit{Input:} Activity type (Water / Meal / Walk / Exercise), reminder time, frequency\\
+\textit{Output:} Activity reminder is saved and notifications are set\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Activity screen.
+    \item User selects activity type, reminder time, and frequency.
+    \item App checks all options are selected.
+\end{enumerate}
+
+\textbf{Algorithm 12: Medical Professional}\\
+\textit{Input:} Connection request, Appointment schedule\\
+\textit{Output:} Patient connects with doctor/caregiver and appointments saved with reminder\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens the Medical Professional screen.
+    \item User enters doctor details, reasons/symptoms and sends request.
+    \item User enters caregiver name and email and sends request.
+    \item App checks that all fields are filled.
+    \item If any field is empty, shows error message.
+    \item App sends the request and updates status to Pending.
+    \item User selects Appointment tab to view or manage scheduled visits.
+\end{enumerate}
+
+\textbf{Algorithm 13: Appointment Reminder}\\
+\textit{Input:} Appointment date, time, doctor or clinic name\\
+\textit{Output:} Appointment is saved and reminder notification is set\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Appointment screen.
+    \item User enters date, time, and doctor or clinic name.
+    \item App checks all fields are filled and date is in the future.
+    \item If not, show error.
+    \item If correct, save the appointment.
+    \item Set a reminder notification at the appointment time.
+    \item Show appointment in upcoming list.
+    \item User can update or delete the appointment anytime.
+\end{enumerate}
+
+\textbf{Algorithm 14: Refill Reminder}\\
+\textit{Input:} Medicine name, quantity\\
+\textit{Output:} Refill reminder is saved, notification sent when medicine is low\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens medication screen.
+    \item User enters medicine name and current quantity.
+    \item App checks fields are filled.
+    \item If not, show error.
+    \item When quantity becomes low, send a notification to refill.
+    \item Show refill reminder in active list.
+    \item User can update or delete the refill reminder.
+\end{enumerate}
+
+\textbf{Algorithm 15: Measurement Tracker}\\
+\textit{Input:} Measurement type, values (BP readings / sugar level / weight)\\
+\textit{Output:} Health value is saved and shown in history\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Measurement Tracker screen.
+    \item User selects measurement type.
+    \item User enters the value (e.g., systolic and diastolic for BP).
+    \item App checks values are valid numbers.
+    \item If not valid, show error.
+    \item If valid, save the record with date and time.
+    \item Show record in health history list.
+    \item User can update or delete any record.
+\end{enumerate}
+
+\textbf{Algorithm 16: Pharmacy}\\
+\textit{Input:} Medicine name, quantity, delivery address\\
+\textit{Output:} Checked medicine stock, calculated total price, placed delivery order\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Pharmacy screen.
+    \item User enters medicine name and required quantity.
+    \item User taps check delivery availability.
+    \item App checks stock and delivery availability.
+    \item If out of stock, app displays an error message.
+    \item If available, patient enters delivery address.
+    \item Pharmacist calculates medicine cost and delivery fee.
+    \item Patient confirms and places order using Cash on Delivery.
+    \item App saves order details and displays order confirmation to patient.
+\end{enumerate}
+
+\textbf{Algorithm 17: Chatbot}\\
+\textit{Input:} User's health question\\
+\textit{Output:} AI gives a simple health answer or tip\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Chatbot screen.
+    \item User types a health question.
+    \item Question is sent to the AI model.
+    \item AI reads the question and finds the best answer.
+    \item If user shares a health value like high BP, AI gives a helpful tip.
+    \item AI reply is shown in the chat.
+    \item If AI does not understand, it shows a helpful default message.
+    \item Chat history stays on screen during the session.
+\end{enumerate}
+
+\textbf{Algorithm 18: Notification and Reminder}\\
+\textit{Input:} Reminder time set by user in any module\\
+\textit{Output:} Notification is sent, status marked as Taken or Missed\\
+\textit{Steps:}
+\begin{enumerate}
+    \item App checks all saved reminders.
+    \item At the set time, a notification is sent to the user.
+    \item Notification shows the task and reminder type.
+    \item If user marks it as Taken, status is saved as Taken.
+    \item If user ignores it, notification is repeated until user marks it.
+    \item Result is saved in Track Intake.
+\end{enumerate}
+
+\textbf{Algorithm 19: Track Intake}\\
+\textit{Input:} User response to reminder (Taken or Missed)\\
+\textit{Output:} Daily health record is updated\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Track Intake screen.
+    \item All today's reminders are shown.
+    \item User selects a reminder and marks it as Taken or Missed.
+    \item Status is saved with date and time.
+    \item User can see daily summary of all Taken and Missed tasks.
+    \item All records are saved and can be viewed in Profile History.
+\end{enumerate}
+
+\textbf{Algorithm 20: Profile Section}\\
+\textit{Input:} User profile info, feedback text, emergency contact details\\
+\textit{Output:} Profile updated, feedback sent to admin, emergency contact saved\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Profile screen.
+    \item User can see their personal details like name and email.
+    \item User goes to History to see all Taken and Missed records.
+    \item User goes to Feedback and writes a suggestion or complaint.
+    \item App checks feedback is not empty.
+    \item If not empty, feedback is saved and sent to admin.
+    \item User adds emergency contact.
+    \item App checks name and number are valid.
+    \item Emergency contact is saved for quick access in emergencies.
+\end{enumerate}
+
+\textbf{Algorithm 21: Admin Module}\\
+\textit{Input:} Admin login credentials\\
+\textit{Output:} Admin can view registered users and user feedback\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Admin enters email and password to login.
+    \item Admin opens Admin Dashboard.
+    \item Admin can see list of all registered users.
+    \item Admin can approve and reject license of doctor.
+    \item Admin can view all feedback sent by users.
+    \item Admin can view emergency contact details saved by users.
+    \item Admin logs out when done.
+\end{enumerate}

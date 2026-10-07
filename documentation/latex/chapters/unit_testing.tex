@@ -1,0 +1,47 @@
+% Unit Test Cases UT1-UT10
+
+\begin{table}[H]
+\centering
+\caption{Unit Test Case 1: User Authentication}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & UT1 \\ \hline
+\textbf{Title} & User Authentication (Login \& Registration) \\ \hline
+\textbf{Description} & This test verifies that a user can register a new account and successfully log into the system. \\ \hline
+\textbf{Objective} & To confirm correct authentication, user creation, and secure access. \\ \hline
+\textbf{Precondition} & Firebase Authentication initialized. \\ \hline
+\textbf{Test Steps} & 1. Register new user. 2. Store user in Firestore. 3. Login using credentials. 4. Verify dashboard access. \\ \hline
+\textbf{Input} & Email, password, personal details. \\ \hline
+\textbf{Expected Results} & User should be registered and successfully logged in. \\ \hline
+\textbf{Actual Results} & User created and login successful. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Unit Test Case 2: Medication Reminder Creation}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & UT2 \\ \hline
+\textbf{Title} & Medication Reminder Creation \\ \hline
+\textbf{Description} & The patient adds medication and system schedules reminders. \\ \hline
+\textbf{Objective} & Verify that medication data is stored and reminder is generated. \\ \hline
+\textbf{Precondition} & Patient is logged in. \\ \hline
+\textbf{Test Steps} & 1. Open Medication module. 2. Add medicine details. 3. Save medication. 4. Check reminder notification. \\ \hline
+\textbf{Input} & Medicine name, dosage, time. \\ \hline
+\textbf{Expected Results} & Medication saved and reminder notification scheduled. \\ \hline
+\textbf{Actual Results} & Medication stored and notification triggered. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: UT3-UT10 follow the same format. Add them for:
+% UT3: Health Measurement Recording (Pass)
+% UT4: Appointment Reminder (Pass)
+% UT5: Doctor Recommendation Submission (Pass)
+% UT6: Pharmacy Medicine Request (Pass)
+% UT7: Doctor-Patient Chat (Pass)
+% UT8: AI Chatbot Health Guidance (Pass)
+% UT9: Feedback Submission (Pass)
+% UT10: Emergency Contact Save and Call (Pass)

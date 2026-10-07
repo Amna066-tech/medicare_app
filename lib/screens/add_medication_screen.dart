@@ -20,8 +20,9 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
   final TextEditingController _stockController = TextEditingController();
 
   String _selectedFrequency = "Once a day";
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay? _selectedTime;
+  int _timesPerDay = 1;
+  List<DateTime> _selectedDates = [DateTime.now()];
+  List<TimeOfDay?> _selectedTimes = [null];
 
   bool _isLoading = false;
 
@@ -31,10 +32,38 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     NotificationService().requestPermission();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  void _onFrequencyChanged(String? val) {
+    if (val == null) return;
+    setState(() {
+      _selectedFrequency = val;
+      if (val == "Once a day") {
+        _selectedTimes = [null];
+      } else if (val == "Twice a day") {
+        _selectedTimes = [null, null];
+      } else if (val == "3 times a day") {
+        _selectedTimes = [null, null, null];
+      } else if (val == "Everyday" || val == "Specific Dates") {
+        _selectedTimes = List.generate(_timesPerDay, (index) => null);
+      }
+      
+      if (val != "Specific Dates") {
+        _selectedDates = [_selectedDates.isNotEmpty ? _selectedDates.first : DateTime.now()];
+      }
+    });
+  }
+
+  void _onTimesPerDayChanged(int? val) {
+    if (val == null) return;
+    setState(() {
+      _timesPerDay = val;
+      _selectedTimes = List.generate(_timesPerDay, (index) => null);
+    });
+  }
+
+  Future<DateTime?> _pickDate(BuildContext context, DateTime initialDate) async {
+    return await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: initialDate,
       firstDate: DateTime.now(),
       lastDate: DateTime(2030),
       builder: (context, child) {
@@ -50,14 +79,27 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         );
       },
     );
+  }
+
+  Future<void> _selectDate(BuildContext context, int index) async {
+    final DateTime? picked = await _pickDate(context, _selectedDates[index]);
     if (picked != null) {
       setState(() {
-        _selectedDate = picked;
+        _selectedDates[index] = picked;
       });
     }
   }
 
-  Future<void> _selectTime(BuildContext context) async {
+  Future<void> _addSpecificDate(BuildContext context) async {
+    final DateTime? picked = await _pickDate(context, DateTime.now());
+    if (picked != null) {
+      setState(() {
+        _selectedDates.add(picked);
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context, int index) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
@@ -76,22 +118,30 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     );
     if (picked != null) {
       setState(() {
-        _selectedTime = picked;
+        _selectedTimes[index] = picked;
       });
     }
   }
 
   void saveMedication() async {
-    if (_nameController.text.isEmpty || _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Name and Reminder Time are required!")),
-      );
+    if (_nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Medicine Name is required!")));
+      return;
+    }
+    if (_selectedDates.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("At least one date is required!")));
+      return;
+    }
+    if (_selectedTimes.any((t) => t == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("All reminder times must be set!")));
       return;
     }
 
     setState(() => _isLoading = true);
 
-    String formattedTime = _selectedTime!.format(context);
+    List<String> formattedDates = _selectedDates.map((d) => d.toString().substring(0, 10)).toList();
+    List<String> formattedTimes = _selectedTimes.map((t) => t!.format(context)).toList();
+    
     final String targetUid = widget.patientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
 
     MedicationModel newMed = MedicationModel(
@@ -101,14 +151,16 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
       dosage: _dosageController.text.isEmpty ? "1 pill" : _dosageController.text,
       diseaseName: "N/A",
       frequency: _selectedFrequency,
-      startDate: _selectedDate.toString().substring(0, 10),
-      endDate: "Ongoing",
-      reminderTimes: [formattedTime],
+      startDate: formattedDates.first,
+      endDate: _selectedFrequency == "Specific Dates" ? formattedDates.last : "Ongoing",
+      reminderTimes: formattedTimes,
+      selectedDates: formattedDates,
+      stock: int.tryParse(_stockController.text),
     );
 
     String res = await DatabaseService().addMedication(newMed);
 
-    if (res == "success") {
+    if (res != "Some error occurred" && res.isNotEmpty) {
       try {
         await FirebaseFirestore.instance.collection('medical_history').add({
           'userId': targetUid,
@@ -119,22 +171,33 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
         });
 
         final now = DateTime.now();
-        DateTime scheduledDate = DateTime(
-            _selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime!.hour, _selectedTime!.minute);
+        bool repeatDaily = _selectedFrequency != "Specific Dates";
 
-        if (scheduledDate.isBefore(now)) {
-          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        for (var date in _selectedDates) {
+          for (var time in _selectedTimes) {
+             DateTime scheduledDate = DateTime(
+                date.year, date.month, date.day, time!.hour, time.minute);
+
+             if (scheduledDate.isBefore(now) && !repeatDaily) {
+                // Skip scheduling alarms that are strictly in the past for non-repeating alarms
+                continue;
+             } else if (scheduledDate.isBefore(now) && repeatDaily) {
+                scheduledDate = scheduledDate.add(const Duration(days: 1));
+             }
+
+             int notificationId = scheduledDate.millisecondsSinceEpoch.remainder(100000);
+
+             await NotificationService().scheduleReminderNotification(
+               id: notificationId,
+               itemTitle: _nameController.text,
+               category: "Medication",
+               subtitle: "Please take ${_dosageController.text}.",
+               medicationId: res, // The generated document ID
+               scheduledTime: scheduledDate,
+               repeatDaily: repeatDaily,
+             );
+          }
         }
-
-        int notificationId = scheduledDate.millisecondsSinceEpoch.remainder(100000);
-
-        await NotificationService().scheduleReminderNotification(
-          id: notificationId,
-          itemTitle: _nameController.text,
-          category: "Medication",
-          subtitle: "Please take ${_dosageController.text}.",
-          scheduledTime: scheduledDate,
-        );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Medication saved successfully!")));
@@ -197,11 +260,20 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
               ),
               const SizedBox(height: 16),
               _buildDropdownField(),
+              if (_selectedFrequency == 'Everyday' || _selectedFrequency == 'Specific Dates') ...[
+                const SizedBox(height: 16),
+                _buildTimesPerDayDropdown(),
+              ],
               const SizedBox(height: 16),
-              _buildDatePickerField(context),
+              if (_selectedFrequency == 'Specific Dates')
+                _buildSpecificDatesSection(context)
+              else
+                _buildSingleDatePickerField(context),
               const SizedBox(height: 16),
-              _buildTimePickerField(context),
-              const SizedBox(height: 16),
+              ...List.generate(_selectedTimes.length, (index) => Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: _buildTimePickerField(context, index),
+              )),
               _buildInputField(
                 controller: _stockController,
                 hint: "Stock (Optional)",
@@ -276,7 +348,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                 padding: EdgeInsets.only(right: 16.0),
                 child: Icon(Icons.arrow_drop_down, color: Colors.grey),
               ),
-              items: ['Once a day', 'Twice a day', '3 times a day']
+              items: ['Once a day', 'Twice a day', '3 times a day', 'Everyday', 'Specific Dates']
                   .map((freq) => DropdownMenuItem(
                 value: freq,
                 child: Row(
@@ -289,9 +361,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
                 ),
               ))
                   .toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _selectedFrequency = val);
-              },
+              onChanged: _onFrequencyChanged,
             ),
           ),
         ),
@@ -311,9 +381,60 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     );
   }
 
-  Widget _buildDatePickerField(BuildContext context) {
+  Widget _buildTimesPerDayDropdown() {
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              isExpanded: true,
+              value: _timesPerDay,
+              icon: const Padding(
+                padding: EdgeInsets.only(right: 16.0),
+                child: Icon(Icons.arrow_drop_down, color: Colors.grey),
+              ),
+              items: [1, 2, 3]
+                  .map((val) => DropdownMenuItem(
+                value: val,
+                child: Row(
+                  children: [
+                    const SizedBox(width: 12),
+                    const Icon(Icons.access_time, color: Color(0xFF1550A6)),
+                    const SizedBox(width: 12),
+                    Text("$val time${val > 1 ? 's' : ''} a day", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ))
+                  .toList(),
+              onChanged: _onTimesPerDayChanged,
+            ),
+          ),
+        ),
+        Positioned(
+          left: 12,
+          top: 0,
+          child: Container(
+            color: const Color(0xFFF2F4F7),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              "Times per day",
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSingleDatePickerField(BuildContext context) {
     return InkWell(
-      onTap: () => _selectDate(context),
+      onTap: () => _selectDate(context, 0),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -327,7 +448,7 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             const Icon(Icons.calendar_today, color: Color(0xFF1550A6)),
             const SizedBox(width: 12),
             Text(
-              _selectedDate.toString().substring(0, 10),
+              _selectedDates.isNotEmpty ? _selectedDates[0].toString().substring(0, 10) : "",
               style: const TextStyle(fontSize: 16, color: Colors.black87),
             ),
           ],
@@ -336,9 +457,40 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
     );
   }
 
-  Widget _buildTimePickerField(BuildContext context) {
+  Widget _buildSpecificDatesSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _selectedDates.asMap().entries.map((entry) {
+            int idx = entry.key;
+            DateTime date = entry.value;
+            return Chip(
+              label: Text(date.toString().substring(0, 10)),
+              deleteIcon: const Icon(Icons.close, size: 18),
+              onDeleted: () {
+                setState(() {
+                  _selectedDates.removeAt(idx);
+                });
+              },
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: () => _addSpecificDate(context),
+          icon: const Icon(Icons.add, color: Color(0xFF1550A6)),
+          label: const Text("Add Date", style: TextStyle(color: Color(0xFF1550A6), fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimePickerField(BuildContext context, int index) {
     return InkWell(
-      onTap: () => _selectTime(context),
+      onTap: () => _selectTime(context, index),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -352,10 +504,12 @@ class _AddMedicationScreenState extends State<AddMedicationScreen> {
             const Icon(Icons.access_time, color: Color(0xFF1550A6)),
             const SizedBox(width: 12),
             Text(
-              _selectedTime == null ? "Reminder Time" : _selectedTime!.format(context),
+              _selectedTimes.length > index && _selectedTimes[index] != null 
+                  ? _selectedTimes[index]!.format(context) 
+                  : "Reminder Time ${index + 1}",
               style: TextStyle(
                 fontSize: 16,
-                color: _selectedTime == null ? Colors.grey[600] : Colors.black87,
+                color: _selectedTimes.length > index && _selectedTimes[index] != null ? Colors.black87 : Colors.grey[600],
               ),
             ),
           ],

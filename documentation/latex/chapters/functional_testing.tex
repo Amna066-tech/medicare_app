@@ -1,0 +1,32 @@
+% Functional Test Cases FT1-FT12
+
+\begin{table}[H]
+\centering
+\caption{Functional Test Case 1: Health Modules}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & FT1 \\ \hline
+\textbf{Title} & Health Modules (Medication, Measurement, Activities, Appointment, Refill) \\ \hline
+\textbf{Description} & Verifies that the patient can successfully create and manage health-related modules. \\ \hline
+\textbf{Objective} & To ensure all health modules correctly store data in Firestore and trigger scheduled reminders. \\ \hline
+\textbf{Precondition} & Patient is authenticated, Firestore initialized. \\ \hline
+\textbf{Test Steps} & 1. Add medication reminder. 2. Add measurement record. 3. Book appointment. 4. Set refill reminder. 5. Add activity reminder. 6. Verify data stored. \\ \hline
+\textbf{Input} & Medicine details, BP/sugar/weight values, appointment info, refill data, activity type. \\ \hline
+\textbf{Expected Results} & All records should be stored successfully and reminders scheduled. \\ \hline
+\textbf{Actual Results} & All modules data saved successfully in Firestore. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: FT2-FT12 follow the same format. Add them for:
+% FT2: User Authentication (Pass)
+% FT3: Sending Request to Doctor (Pass)
+% FT4: Doctor Recommendation (Pass)
+% FT5: Pharmacy Medicine Stock and Order (Pass)
+% FT6: Profile & Health History Management (Pass)
+% FT7: Medical License Verification (Pass)
+% FT8: Doctor Login Based on License Approval (Pass)
+% FT9: Patient-Doctor Chat Functionality (Pass)
+% FT10: Patient-Caregiver Chat Functionality (Pass)
+% FT11: Doctor Payment Functionality (Pass)
+% FT12: Pharmacist Medicine and Delivery Management (Pass)

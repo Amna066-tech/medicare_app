@@ -8,10 +8,13 @@ import 'caregiver_dashboard_screen.dart';
 import 'signup_screen.dart';
 import 'pharmacy_dashboard_screen.dart';
 import '../models/user_model.dart';
+import '../services/chat_notification_service.dart';
+import '../services/alert_notification_service.dart';
 import 'doctor_verification_screen.dart';
 import 'nurse_verification_screen.dart';
 import 'pharmacist_verification_screen.dart';
 import 'admin_login_screen.dart';
+import 'rejected_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -59,6 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
       String status = user.verificationStatus;
       String? caregiverType = user.caregiverType;
 
+      // Check unread messages and alerts on login
+      ChatNotificationService().checkUnreadOnLogin();
+
       if (mounted) {
         if (role == 'Patient') {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainNavigationScreen()));
@@ -76,8 +82,10 @@ class _LoginScreenState extends State<LoginScreen> {
             } else {
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const MainNavigationScreen()));
             }
+          } else if (status == 'REJECTED') {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RejectedScreen()));
           } else {
-            // NOT_SUBMITTED, PENDING, REJECTED
+            // NOT_SUBMITTED, PENDING
             if (role == 'Doctor') {
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DoctorVerificationScreen(user: user)));
             } else if (role == 'Caregiver' && caregiverType == 'Nurse') {

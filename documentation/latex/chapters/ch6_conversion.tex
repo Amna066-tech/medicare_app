@@ -1,0 +1,108 @@
+\chapter{System Conversion}
+\label{ch:conversion}
+
+\section{Conversion Method}
+
+For the implementation of the Smart Healthcare Reminder, the system conversion method should ensure that the system works smoothly from the old reminder system to the new intelligent system.
+
+\subsection{Pilot Conversion}
+In the pilot conversion approach, the new system is initially implemented in a limited, controlled environment for limited users or one department of a hospital. This allows for comprehensive testing of the system's core functionalities, identification of real-world issues, and collection of user feedback before full-scale deployment.
+
+\textbf{Justification:}
+\begin{itemize}
+    \item \textbf{Reduced Risk:} Since limited users used the system initially, the risk of system-wide failure is minimized.
+    \item \textbf{Focused Testing:} Allows in-depth testing of modules.
+    \item \textbf{User Feedback Loop:} Early user feedback helps improve the app before wider implementation.
+\end{itemize}
+
+\textbf{Pilot Scope:}
+\begin{itemize}
+    \item \textbf{Initial Group:} A selected group of patients will use the app at the initial stage.
+    \item \textbf{Modules Tested:} Authentication, Medication, Measurement, Activity, Tracker, Track Intake, Appointments, and role-based dashboards.
+    \item \textbf{Duration:} Two weeks of controlled usage.
+\end{itemize}
+
+\section{Deployment}
+
+Deployment involves preparing and transferring the Smart Healthcare Reminder System from the development environment to a live environment.
+
+\subsection{Deployment Steps}
+
+\begin{table}[H]
+\centering
+\caption{Deployment Steps}
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\textbf{Step} & \textbf{Task} & \textbf{Details} \\ \hline
+1 & Build APK/Bundle & Build signed APK using Android Studio for production deployment. \\ \hline
+2 & Backend Configuration & Ensure Firebase Firestore, Realtime Database, and Firebase Auth are live. \\ \hline
+3 & Firebase Rule Setup & Apply role-based read/write security rules for Firestore and Database. \\ \hline
+4 & App Deployment & Distribute APK through selected users via secure Google Play, WhatsApp. \\ \hline
+5 & Device Testing & Install on various Android versions for compatibility testing. \\ \hline
+6 & Live Environment & Check connectivity with Firebase and proper working of reminders. \\ \hline
+7 & Deployment Confirmation & Conduct user acceptance testing with limited patients for validation. \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Data Conversion}
+
+\begin{table}[H]
+\centering
+\caption{Data Conversion Steps}
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\textbf{Step} & \textbf{Task} & \textbf{Details} \\ \hline
+1 & Data Preparation & Collect and organize healthcare-related data. \\ \hline
+2 & Data Cleaning & Remove duplicates, incorrect values, and fix formatting. \\ \hline
+3 & Data Transformation & Convert to structured Firestore collections. \\ \hline
+4 & Data Loading & Upload data into Firebase Firestore. \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Training}
+For training purposes, a descriptive video is created to guide users on how to use the Smart Healthcare Reminder Application. The video demonstrates the real usage scenarios for different actors.
+
+\section{Post Deployment Testing}
+
+\begin{table}[H]
+\centering
+\caption{Post Deployment Testing Steps}
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\textbf{Step} & \textbf{Test Activity} & \textbf{Expected Outcomes} \\ \hline
+1 & Launch Application & App starts successfully without crashes. \\ \hline
+2 & Login Functionality & User can login and signup. \\ \hline
+3 & Medication Reminder & Users can add medication and receive notifications. \\ \hline
+4 & Measurement Tracking & Users can record and view history. \\ \hline
+5 & Activity Reminder & Activity reminders triggered properly. \\ \hline
+6 & Data Integrity & Data remains consistent after login/logout. \\ \hline
+7 & Notification System & Notifications triggered at correct time. \\ \hline
+8 & Performance Check & App performs smoothly. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Challenges and Solutions}
+
+\begin{table}[H]
+\centering
+\caption{Challenges and Solutions}
+\begin{tabularx}{\textwidth}{|l|X|X|}
+\hline
+\textbf{Challenge} & \textbf{Description} & \textbf{Solution} \\ \hline
+Firebase Data Sync & Delay in syncing data across modules. & Real-time listeners and optimized Firestore queries. \\ \hline
+Notification Delay & Reminders not triggered due to background restrictions. & Alarm Manager and optimized notification handling. \\ \hline
+Role-Based Access & Incorrect permissions. & Proper Firestore security rules for each role. \\ \hline
+APK Installation & Devices blocked unsigned APKs. & Generated signed APK. \\ \hline
+Data Entry Errors & Incorrect health data entered. & Input validation and error messages. \\ \hline
+Device Compatibility & UI issues on different screens. & Responsive UI design and testing on multiple devices. \\ \hline
+Internet Dependency & Features depend on connectivity. & Connectivity status notifications. \\ \hline
+Chatbot Accuracy & General or unclear responses. & Improved chatbot logic. \\ \hline
+Reminder Overload & Too many notifications confused users. & Reminder grouping and limited alerts. \\ \hline
+Caregiver Linking & Difficulty in linking caregiver. & Simplified linking process. \\ \hline
+Security & Sensitive health data needed protection. & Firebase Authentication and secured Firestore rules. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Summary}
+
+This chapter focuses on how the app is deployed and what training users need, how data is converted into useful information. It also focuses on challenges faced during development and how these challenges were tackled.

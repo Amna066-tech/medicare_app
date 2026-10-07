@@ -5,6 +5,7 @@ import '../models/measurement_model.dart';
 import '../models/activity_model.dart';
 import '../models/appointment_model.dart';
 import '../models/intake_model.dart';
+import '../services/notification_service.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -18,8 +19,8 @@ class DatabaseService {
     String res = "Some error occurred";
     try {
       // Create a new document in the 'medications' collection
-      await _firestore.collection('medications').add(medication.toMap());
-      res = "success";
+      DocumentReference docRef = await _firestore.collection('medications').add(medication.toMap());
+      res = docRef.id; // Return the generated ID instead of just "success"
     } catch (err) {
       res = err.toString();
     }
@@ -62,6 +63,59 @@ class DatabaseService {
       res = err.toString();
     }
     return res;
+  }
+
+  // PROCESS MEDICATION INTAKE (Atomic Decrement)
+  Future<void> processMedicationIntake(String medicationId) async {
+    final docRef = _firestore.collection('medications').doc(medicationId);
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(docRef);
+
+        if (!snapshot.exists) {
+          return; // Medication doesn't exist anymore
+        }
+
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+        
+        if (data['stock'] != null && data['stock'] > 0) {
+          int currentStock = data['stock'];
+          int newStock = currentStock - 1;
+          bool currentLowStockNotified = data['lowStockNotified'] ?? false;
+          bool currentOutOfStockNotified = data['outOfStockNotified'] ?? false;
+          
+          bool shouldNotifyLow = newStock <= 3 && newStock > 0 && !currentLowStockNotified;
+          bool shouldNotifyOut = newStock == 0 && !currentOutOfStockNotified;
+
+          // Perform atomic update
+          transaction.update(docRef, {
+            'stock': FieldValue.increment(-1),
+            if (shouldNotifyLow) 'lowStockNotified': true,
+            if (shouldNotifyOut) 'outOfStockNotified': true,
+          });
+
+          // Fire local notifications after transaction completes
+          String medName = data['name'] ?? 'Unknown Medication';
+          
+          if (shouldNotifyOut) {
+            await NotificationService().showInstantNotification(
+              id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+              title: "Out of Stock: $medName",
+              body: "You have no doses left. Please refill immediately.",
+            );
+          } else if (shouldNotifyLow) {
+            await NotificationService().showInstantNotification(
+              id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+              title: "Refill Reminder: $medName",
+              body: "Low stock alert! Only $newStock doses left. Please refill your medicine.",
+            );
+          }
+        }
+      });
+    } catch (e) {
+      print("Error processing medication intake: $e");
+    }
   }
   // ADD MEASUREMENT
   Future<String> addMeasurement(MeasurementModel measurement) async {

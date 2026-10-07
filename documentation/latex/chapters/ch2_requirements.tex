@@ -1,0 +1,109 @@
+\chapter{Requirements Analysis}
+\label{ch:analysis}
+
+This chapter focuses on requirement identification, elicitation, and analysis. The users are categorized into classes. For requirement identification and elicitation, open interviews, ethnography, and use case analysis are used. The identified requirements are categorized into functional and non-functional requirements along with their use case descriptions and diagrams.
+
+\section{User Classes and Characterization}
+\label{sec:user-classes}
+
+\begin{table}[H]
+\centering
+\caption{User Classes and Characteristics}
+\label{tab:user-classes}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{User Class} & \textbf{Characterization} \\ \hline
+Patient & The patient logs into the application to manage medications, health measurements, and appointment reminders. \\ \hline
+Caregiver & The caregiver is an authorized person who can log in to manage reminders and health tasks on behalf of the patient when the patient is unavailable. \\ \hline
+Doctor & The doctor logs into the application to view patient profiles after appointments and analyze their health data. The doctor gives advice on medicine, measurement, activity plan, and caregiver support. \\ \hline
+Pharmacist & The pharmacist receives the request through the Pharmacy Dashboard and provides the medicine and delivery cost. The pharmacist checks and accepts the delivery address to send the medicine. \\ \hline
+Admin & The admin can view registered users. Verify the doctor, pharmacist, and nurse license. Users can submit feedback which can be viewed by the admin. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Requirement Identifying Techniques}
+\label{sec:req-techniques}
+
+\subsection{Interview}
+Open interviews were conducted with individuals from different age groups to understand the difficulty they face in managing medicines, appointments, and daily health activities. The application helps to identify common problems such as forgetting doses and missing appointments, which helps in defining the system requirements.
+
+\subsection{Ethnography or Observation}
+Software systems are not used alone---they work in social and organizational environments. User needs are often affected by their daily routines and surroundings. Ethnography is an observational technique that can be used to understand operational processes and help derive requirements for software to support these processes. It was noticed that many people rely on memory or simple alarms and often forget important health tasks. This observation helped in identifying the need for a structured and organized healthcare reminder system.
+
+\section{Use Case Model}
+\label{sec:use-case-model}
+
+% Include your use case diagram images here
+% \begin{figure}[H]
+% \centering
+% \includegraphics[width=\textwidth]{use_case_diagram_1.png}
+% \caption{Use Case Diagram 1}
+% \label{fig:use-case-1}
+% \end{figure}
+
+\textit{(Include Use Case Diagram images here.)}
+
+\section{Use Case Descriptions}
+\label{sec:use-case-desc}
+
+\input{chapters/use_case_descriptions}
+
+\section{Functional Requirements}
+\label{sec:functional-req}
+
+This section describes the functional requirements of the system expressed in natural language style. This section is organized by features as a system feature name and specific functional requirements associated with this feature.
+
+\input{chapters/functional_requirements}
+
+\section{Non-Functional Requirements}
+\label{sec:non-functional-req}
+
+Non-functional requirements are the constraints that specify the quality attributes of software. They are important because they can significantly impact the overall quality and success of a software system.
+
+\subsection{Reliability}
+The Smart Healthcare Reminder application should work smoothly and be available most of the time. The application should recover automatically if small errors occur and keep important data safe like reminders, intake tracking, and user profiles.
+
+\subsection{Usability}
+The application should be easy to use for all users including patients, caregivers, doctors, pharmacists, and administrators. The system should have a simple and clear interface so users should easily perform tasks like adding reminders, tracking intake, viewing profiles, and using the chatbot.
+
+\subsection{Performance}
+The application should load screens quickly under normal conditions. It should handle multiple users at the same time without slowing down. Features like saving reminders, recording measurement values, and chatbot should respond smoothly with minimal delay.
+
+\subsection{Security}
+The application should protect all user data such as personal information, health records, and reminders. Only authorized users can access the system and each user can access their own data. The system should use role-based access so that admin and users have different accessibility.
+
+\section{External Interface Analysis}
+\label{sec:external-interface}
+
+\subsection{User Interface Requirements}
+\begin{itemize}
+    \item The app follows standard design principles for clarity and ease of use.
+    \item It will adjust to different screen sizes and devices.
+    \item Users will receive clear notifications for their actions.
+\end{itemize}
+
+\subsection{Software Interfaces}
+\begin{itemize}
+    \item The app will run on Android.
+    \item Firebase will be used for data storage and management.
+\end{itemize}
+
+\subsection{Hardware Interfaces}
+\begin{itemize}
+    \item Users will access the application mainly through smartphones and tablets.
+\end{itemize}
+
+\subsection{Communication Interfaces}
+\begin{itemize}
+    \item The application will use standard mobile communication methods and secure protocols for data exchange.
+\end{itemize}
+
+\subsection{Error Handling and Reporting}
+\begin{itemize}
+    \item The application handles errors by checking user input, login details, internet connection, and notification permission. When a problem occurs, clear messages are shown to help users fix it.
+\end{itemize}
+
+\section{Summary}
+\label{sec:ch2-summary}
+
+Chapter 2 outlines the requirements of the Smart Healthcare Reminder application, detailing how users can register, set reminders for medication, measurement, activity, appointment, and refills, and track their daily intake. This chapter also outlines non-functional requirements such as reliability, usability, and security along with system interfaces used for notification, data storage, and user interaction.

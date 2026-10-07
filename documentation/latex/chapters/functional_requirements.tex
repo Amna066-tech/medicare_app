@@ -1,0 +1,73 @@
+% Functional Requirements - FR-1 through FR-24
+
+\begin{table}[H]
+\centering
+\caption{Functional Requirement 1: User Profile Management}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Identifier} & FR-1 \\ \hline
+\textbf{Title} & User Profile Management \\ \hline
+\textbf{Requirement} & The user shall be able to create and manage their profile by entering personal information such as full name, email, Date of Birth, gender, and password. When a user selects their role, it will also enter a license number or speciality. The user shall be able to login by entering email and password. \\ \hline
+\textbf{Source} & User Requirement, System Requirement \\ \hline
+\textbf{Rationale} & It provides a secure environment and collects profile data. \\ \hline
+\textbf{Business Rule} & User Date of Birth must follow a format (YYYY/MM/DD). Gender selection must be from predefined options (Male, Female, Others). \\ \hline
+\textbf{Dependencies} & Internet connection, Firebase Authentication \\ \hline
+\textbf{Priority} & Medium \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Functional Requirement 2: Forgot Password}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Identifier} & FR-2 \\ \hline
+\textbf{Title} & Forgot Password \\ \hline
+\textbf{Requirement} & The end user will be able to recover the password by entering a registered email and receiving a password reset link. \\ \hline
+\textbf{Source} & System Requirement \\ \hline
+\textbf{Rationale} & Support work will be reduced and user will recover their password easily. \\ \hline
+\textbf{Business Rule} & Password should expire after a limited time. \\ \hline
+\textbf{Dependencies} & FR-1 \\ \hline
+\textbf{Priority} & Medium \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Functional Requirement 3: Patient Health Management}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Identifier} & FR-3 \\ \hline
+\textbf{Title} & Patient Health Management \\ \hline
+\textbf{Requirement} & The system allows patients to manage medications, health data, daily activities, and appointments. It supports intake updates, reminders, pharmacy, chatbot access, history, emergency contacts and feedback. \\ \hline
+\textbf{Source} & User Requirement \\ \hline
+\textbf{Rationale} & This feature helps patients manage their health efficiently in one place, reduces missed medications, and improves overall care and monitoring. \\ \hline
+\textbf{Business Rule} & Record tasks, validate numeric data and send reminders. \\ \hline
+\textbf{Dependencies} & Authentication, database, notifications and internet connection \\ \hline
+\textbf{Priority} & High \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: FR-4 through FR-24 follow the same tabular format.
+% Add them following the same pattern as above.
+% FR-4: Caregiver Assistance (High)
+% FR-5: Pharmacist Medicine and Delivery Management (High)
+% FR-6: Doctor (High)
+% FR-7: In-app Chat (High)
+% FR-8: Doctor's Payment (High)
+% FR-9: Add Medication (High)
+% FR-10: Set Measurement Reminder (High)
+% FR-11: Set Activity Reminder (Medium)
+% FR-12: Medical Professional (High)
+% FR-13: Appointment Reminder (High)
+% FR-14: Medicine Refill Reminder (High)
+% FR-15: Edit Health Task (High)
+% FR-16: Record Measurement Data (High)
+% FR-17: Pharmacy Medicine Delivery (Medium)
+% FR-18: Chatbot Assistance (Medium)
+% FR-19: Receive Notification (Medium)
+% FR-20: Track Intake (High)
+% FR-21: View User Profile (High)
+% FR-22: Admin (High)
+% FR-23: Feedback (High)
+% FR-24: Emergency Contact (High)

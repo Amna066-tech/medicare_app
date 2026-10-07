@@ -103,7 +103,7 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> with 
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text("Pharmacist Dashboard", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF0F3057),
+        backgroundColor: const Color(0xFF1550A6),
         actions: [
           IconButton(
             icon: const Icon(Icons.feedback_outlined, color: Colors.white),
@@ -140,6 +140,7 @@ class _PharmacyDashboardScreenState extends State<PharmacyDashboardScreen> with 
       stream: FirebaseFirestore.instance
           .collection('pharmacy_requests')
           .where('status', isEqualTo: 'pending')
+          .where('pharmacyManagerEmail', isEqualTo: currentUser?.email?.toLowerCase())
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());

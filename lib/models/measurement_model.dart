@@ -4,8 +4,9 @@ class MeasurementModel {
   final String type; // e.g., "Weight", "Blood Pressure", "Blood Sugar"
   final String value; // e.g., "75", "120/80", "110"
   final String unit; // e.g., "kg", "mmHg", "mg/dL"
-  final String date;
-  final String time;
+  final String frequency;
+  final String startDate;
+  final List<dynamic> reminderTimes;
 
   MeasurementModel({
     required this.id,
@@ -13,8 +14,9 @@ class MeasurementModel {
     required this.type,
     required this.value,
     required this.unit,
-    required this.date,
-    required this.time,
+    required this.frequency,
+    required this.startDate,
+    required this.reminderTimes,
   });
 
   // From Firebase to Dart
@@ -25,8 +27,11 @@ class MeasurementModel {
       type: map['type'] ?? '',
       value: map['value'] ?? '',
       unit: map['unit'] ?? '',
-      date: map['date'] ?? '',
-      time: map['time'] ?? '',
+      frequency: map['frequency'] ?? 'Once a day',
+      startDate: map['startDate'] ?? map['date'] ?? '', // Fallback to 'date' for older docs
+      reminderTimes: map['reminderTimes'] != null 
+          ? List<dynamic>.from(map['reminderTimes']) 
+          : (map['time'] != null ? [map['time']] : []), // Fallback to 'time' for older docs
     );
   }
 
@@ -37,8 +42,9 @@ class MeasurementModel {
       'type': type,
       'value': value,
       'unit': unit,
-      'date': date,
-      'time': time,
+      'frequency': frequency,
+      'startDate': startDate,
+      'reminderTimes': reminderTimes,
     };
   }
 }

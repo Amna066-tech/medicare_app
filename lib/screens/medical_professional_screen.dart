@@ -4,9 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../services/notification_service.dart';
 import 'chat_screen.dart'; // Ensure this is imported for navigation to the chat room
 import 'pay_doctor_screen.dart'; // Import your full-screen payment view
+import 'edit_appointment_screen.dart';
 
 class MedicalProfessionalScreen extends StatefulWidget {
-  const MedicalProfessionalScreen({super.key});
+  final String? viewingPatientId;
+  const MedicalProfessionalScreen({super.key, this.viewingPatientId});
 
   @override
   State<MedicalProfessionalScreen> createState() => _MedicalProfessionalScreenState();
@@ -15,6 +17,8 @@ class MedicalProfessionalScreen extends StatefulWidget {
 class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _activeTabIndex = 0;
+
+  String get _targetUid => widget.viewingPatientId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
 
   // Controllers for doctor request form
   final TextEditingController _doctorEmailController = TextEditingController();
@@ -80,13 +84,13 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
 
     setState(() => _isSubmitting = true);
     try {
-      String actualName = await _getPatientName(user.uid);
+      String actualName = await _getPatientName(_targetUid);
       final String safeEmailId = doctorEmail.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
-      final String requestId = "${safeEmailId}_${user.uid}";
+      final String requestId = "${safeEmailId}_${_targetUid}";
 
       await FirebaseFirestore.instance.collection('access_requests').doc(requestId).set({
         'requestId': requestId,
-        'patientId': user.uid,
+        'patientId': _targetUid,
         'patientName': actualName,
         'patientEmail': user.email?.toLowerCase(),
         'doctorEmail': doctorEmail,
@@ -125,9 +129,9 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
 
     setState(() => _isSubmitting = true);
     try {
-      String actualName = await _getPatientName(user.uid);
+      String actualName = await _getPatientName(_targetUid);
       await FirebaseFirestore.instance.collection('caregiver_requests').add({
-        'patientId': user.uid,
+        'patientId': _targetUid,
         'patientName': actualName,
         'patientEmail': user.email?.toLowerCase(),
         'caregiverEmail': cgEmail,
@@ -247,7 +251,7 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
                   int notificationId = scheduledDate.millisecondsSinceEpoch.remainder(100000);
 
                   await FirebaseFirestore.instance.collection('appointments').add({
-                    'patientId': user.uid,
+                    'patientId': _targetUid,
                     'doctorName': nameCtrl.text.trim(),
                     'specialty': specialtyCtrl.text.trim(),
                     'date': dateCtrl.text.trim(),
@@ -383,7 +387,7 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('access_requests')
-                      .where('patientId', isEqualTo: user?.uid)
+                      .where('patientId', isEqualTo: _targetUid)
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -623,7 +627,7 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
                     prefixIcon: const Icon(Icons.people, color: brandBlue),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  items: ['Relative', 'Friend', 'Other'].map((String value) {
+                  items: ['Relative', 'Professional Nurse', 'Friend', 'Other'].map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value),
@@ -656,7 +660,7 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('caregiver_requests')
-                      .where('patientId', isEqualTo: user?.uid)
+                      .where('patientId', isEqualTo: _targetUid)
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -699,16 +703,86 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
                                     ),
                                   ],
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    isAccepted ? "accepted" : "Pending",
-                                    style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
-                                  ),
+                                Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: isAccepted ? Colors.green.withValues(alpha: 0.15) : Colors.orange.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        isAccepted ? "Accepted" : "Pending",
+                                        style: TextStyle(color: isAccepted ? Colors.green : Colors.orange, fontWeight: FontWeight.bold, fontSize: 12),
+                                      ),
+                                    ),
+                                    if (isAccepted) ...[
+                                      const SizedBox(height: 8),
+                                      Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          ElevatedButton.icon(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF1565C0),
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                              elevation: 0,
+                                            ),
+                                            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 16),
+                                            label: const Text(
+                                              "Chat",
+                                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                            ),
+                                            onPressed: () async {
+                                              final String? caregiverId = data['caregiverId'];
+                                              if (caregiverId == null) {
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Caregiver ID missing. They need to re-accept.")));
+                                                return;
+                                              }
+                                              final chatRoomId = "${doc.id}_$caregiverId";
+                                              
+                                              // Initialize the chat document so we can query by participants
+                                              await FirebaseFirestore.instance.collection('chats').doc(chatRoomId).set({
+                                                'participants': FieldValue.arrayUnion([user?.uid, caregiverId]),
+                                              }, SetOptions(merge: true));
+
+                                              if (context.mounted) {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ChatScreen(
+                                                      chatId: chatRoomId,
+                                                      peerName: data['caregiverName'] ?? 'Caregiver',
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                          // Red dot indicator logic
+                                          Positioned(
+                                            top: -2,
+                                            right: -2,
+                                            child: StreamBuilder<DocumentSnapshot>(
+                                              stream: FirebaseFirestore.instance.collection('chats').doc("${doc.id}_${data['caregiverId']}").snapshots(),
+                                              builder: (context, chatSnap) {
+                                                if (chatSnap.hasData && chatSnap.data!.exists) {
+                                                  final chatData = chatSnap.data!.data() as Map<String, dynamic>?;
+                                                  if (chatData != null) {
+                                                    final isRead = chatData['isRead'] ?? true;
+                                                    final lastSenderId = chatData['lastSenderId'];
+                                                    if (!isRead && lastSenderId != user?.uid) {
+                                                      return const CircleAvatar(radius: 6, backgroundColor: Colors.red);
+                                                    }
+                                                  }
+                                                }
+                                                return const SizedBox.shrink();
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ],
                             ),
@@ -725,7 +799,7 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('appointments')
-                .where('patientId', isEqualTo: user?.uid)
+                .where('patientId', isEqualTo: _targetUid)
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -779,9 +853,28 @@ class _MedicalProfessionalScreenState extends State<MedicalProfessionalScreen> w
                       title: Text(appt['doctorName'] ?? 'Doctor', style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text("${appt['specialty'] ?? ''}\nDate: $displayDate at $displayTime"),
                       isThreeLine: true,
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                        onPressed: () => deleteAppointment(context, docId, appt['notificationId'] as int?),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: brandBlue),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditAppointmentScreen(
+                                    appointmentId: docId,
+                                    appointmentData: appt,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                            onPressed: () => deleteAppointment(context, docId, appt['notificationId'] as int?),
+                          ),
+                        ],
                       ),
                     ),
                   );

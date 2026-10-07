@@ -1,0 +1,216 @@
+\chapter{Design and Architecture}
+\label{ch:design}
+
+\section{System Design}
+
+This chapter explains the overall system design and its detailed analysis. It includes key design considerations and system structure. The design models used in this project include sequence diagrams, state diagrams, class diagrams, and component diagrams, each representing a different perspective of the system's behavior and structure. For the application architecture, the MVVM (Model-View-ViewModel) pattern is adopted because it provides clear separation of responsibilities, improves modularity, and enhances testability and maintainability of code.
+
+\subsection{Design Considerations}
+
+\textbf{Assumptions and Dependencies:}\\
+Following assumptions and dependencies were considered during the system design: the user will have a stable internet connection for data synchronization and authentication through Firebase services. The user is also expected to use an Android device running version 7 or above with Google Play services enabled, as notification and background reminder functionality depends on it. The system assumes that the device has at least 4GB of RAM and 3GB of free storage to install the application.
+
+Most assumptions, dependencies, and system constraints are further discussed in Chapter 1.
+
+\textbf{Limitations:}
+\begin{enumerate}
+    \item The application is designed for mobile use and may have limited functionality on desktop browsers.
+    \item The application does not provide medical diagnosis.
+\end{enumerate}
+
+\textbf{Risks:}
+\begin{enumerate}
+    \item There is a risk of downtime if the Firebase server experiences issues, which could disrupt access to the app.
+    \item Sensitive user data could be at risk if security measures like authentication are not properly implemented.
+\end{enumerate}
+
+\section{Design Models}
+
+Design models provide structured representations of the system from multiple viewpoints. Such models are used to convey the view of application to other stakeholders. It purposely leaves out detail to make it easier to understand.
+
+\subsection{Class Diagram}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{class_diagram.png}
+\caption{Class Diagram}
+\label{fig:class-diagram}
+\end{figure}
+
+\subsection{Sequence Diagrams}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_patient.png}
+\caption{Sequence Diagram for Patient}
+\label{fig:seq-patient}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_caregiver.png}
+\caption{Sequence Diagram for Caregiver}
+\label{fig:seq-caregiver}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_doctor.png}
+\caption{Sequence Diagram for Doctor}
+\label{fig:seq-doctor}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_pharmacist.png}
+\caption{Sequence Diagram for Pharmacist}
+\label{fig:seq-pharmacist}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_admin.png}
+\caption{Sequence Diagram for Admin}
+\label{fig:seq-admin}
+\end{figure}
+
+\subsection{State Diagrams}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_patient.png}
+\caption{State Diagram for Patient}
+\label{fig:state-patient}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_doctor.png}
+\caption{State Diagram for Doctor}
+\label{fig:state-doctor}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_admin.png}
+\caption{State Diagram for Admin}
+\label{fig:state-admin}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_caregiver.png}
+\caption{State Diagram for Caregiver}
+\label{fig:state-caregiver}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_pharmacist.png}
+\caption{State Diagram for Pharmacist}
+\label{fig:state-pharmacist}
+\end{figure}
+
+\section{Architectural Design}
+
+The Smart Healthcare Reminder application follows the Model-View-ViewModel (MVVM) architecture. This architecture divides the application into three main layers which help keep the code organized, makes the system easy to manage, and simplifies testing and maintenance.
+
+\subsection{Architecture Pattern: MVVM}
+
+\textbf{Model:} The model layer handles the data of the application. It stores, retrieves, and processes data from the database. In this project, the model layer includes user profile information, medication reminders, health measurement data, activity reminders, appointment schedules, medicine refill reminders, track intake records, chat details, payment details, feedback data, emergency contact details, chatbot query and response data, and storing/retrieving data from Firebase Firestore.
+
+\textbf{View:} The view layer is the user interface of the application. It is the part that users interact with directly. It displays information and allows users to perform actions. The View layer includes login/registration screens, home screen, all module-specific screens, and role-based dashboards.
+
+\textbf{ViewModel:} The ViewModel acts as a bridge between the Model and View layers. It manages the application logic and prepares data so it can be easily displayed in the user interface.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{architecture_diagram.png}
+\caption{Architecture Diagram}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Component Structure}
+
+\begin{table}[H]
+\centering
+\caption{Component Structure}
+\label{tab:components}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Component} & \textbf{Role} \\ \hline
+User Authentication Module & Handles user registration, login, and logout using Firebase Authentication. \\ \hline
+Medication Management Module & Allows users to add, edit, and manage medicine reminders and schedules. \\ \hline
+Measurement Module & Allows users to set reminders and record health measurements (BP, sugar, weight). \\ \hline
+Activity Reminder Module & Allows users to set reminders for daily physical activities. \\ \hline
+Appointment Management Module & Enables users to schedule and manage doctor appointments. \\ \hline
+Chat Module & Allows the doctor/patient/caregiver to communicate through chat. \\ \hline
+Payment Module & Allows the doctor to send payment details to the patient. \\ \hline
+Intake Tracking Module & Allows users to mark reminders as taken or missed. \\ \hline
+Profile Management Module & Allows users to view and update their personal profile and health history. \\ \hline
+Pharmacy Delivery Module & Allows patients to send medicine requests to a pharmacist. \\ \hline
+Chatbot Assistance Module & Helps users by answering basic health-related questions. \\ \hline
+Feedback Module & Allows users to submit feedback, complaints, or queries. \\ \hline
+Emergency Contact Module & Allows users to add, manage, and access emergency contacts. \\ \hline
+Admin Management Module & Allows admin to manage users, approve/reject licenses, and view feedback. \\ \hline
+Firebase Data Module & Handles data storage and retrieval using Firebase Firestore. \\ \hline
+ViewModel Layer & Acts as a bridge between the user interface and backend services. \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Component Diagram}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{component_diagram.png}
+\caption{Component Diagram}
+\label{fig:component-diagram}
+\end{figure}
+
+\section{Data Dictionary}
+
+\begin{table}[H]
+\centering
+\caption{Data Dictionary}
+\label{tab:data-dictionary}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Terminology} & \textbf{Description} \\ \hline
+User & Stores personal details such as name, age, DOB, gender and manages medications, measurements, activities, and appointments. \\ \hline
+Medication & Stores medication details including name, dosage, frequency, start/end date, and reminder time. \\ \hline
+Measurement & Represents reminders for health measurements (BP, weight, sugar). \\ \hline
+Activity & Stores activity reminders (walking, water, meals). \\ \hline
+Appointment & Stores doctor appointment details (date, time, doctor name). \\ \hline
+Refill & Represents medicine refill information (name, quantity). \\ \hline
+Pharmacy & Allows patients to order medicines for delivery. \\ \hline
+Chatbot & Virtual assistant for health queries and app guidance. \\ \hline
+Notification & Manages reminder notifications for all modules. \\ \hline
+Feedback & Stores user feedback, complaints, and suggestions. \\ \hline
+Emergency Contact & Stores emergency contact details (name, phone). \\ \hline
+Firebase Auth & Interacts with Firebase Authentication for login/signup. \\ \hline
+Firebase Firestore & Interacts with Firestore to store/retrieve user data. \\ \hline
+Document Snapshot & Interacts with documents retrieved from Firestore. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{User Interface Design}
+\subsection{Screen Images}
+\textit{(Include screen images of the application here.)}
+
+\section{Design Decisions}
+
+In designing the Smart Healthcare Reminder mobile application, several key decisions were made:
+
+\begin{enumerate}
+    \item \textbf{Design Methodology:} Structured and modular approach.
+    \item \textbf{Architectural Style:} MVVM (Model, View, ViewModel).
+    \item \textbf{Database Design:} Firebase Firestore.
+    \item \textbf{Programming Languages \& Framework:} Flutter for Android frontend; Firebase for backend services.
+    \item \textbf{Algorithmic Approach:} CRUD operations with time-based scheduling logic.
+    \item \textbf{Security Decisions:} Firebase Authentication with secure login options.
+    \item \textbf{Design Tools:} UML modelling tools such as Draw.io.
+\end{enumerate}
+
+\section{Summary}
+
+This chapter presents a detailed analysis of the system design, covering design considerations, architectural structure, and high-level abstract models. It includes sequence, state, class, and component diagrams. The MVVM architecture pattern is used for its simplicity and ease of testing.

@@ -1,0 +1,43 @@
+% Performance Test Cases PT1-PT6
+
+\begin{table}[H]
+\centering
+\caption{Performance Test Case 1: User Login Response Time}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & PT1 \\ \hline
+\textbf{Title} & User Login Response Time \\ \hline
+\textbf{Description} & Tests how quickly the system logs in a user under normal and high load conditions. \\ \hline
+\textbf{Objective} & Ensure fast and efficient login performance. \\ \hline
+\textbf{Precondition} & Internet active, Firebase initialized. \\ \hline
+\textbf{Test Steps} & 1. Open login screen. 2. Enter credentials. 3. Tap login. 4. Measure response time. \\ \hline
+\textbf{Input} & Valid email and password. \\ \hline
+\textbf{Expected Results} & Login should complete within 2--3 seconds. \\ \hline
+\textbf{Actual Results} & Login completed in 2 seconds. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Performance Test Case 2: Data Storage Performance}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & PT2 \\ \hline
+\textbf{Title} & Medication, Measurement, Appointment and Activity Data Storage Performance \\ \hline
+\textbf{Description} & Measures time taken to store and schedule reminder. \\ \hline
+\textbf{Objective} & Ensure quick database write and scheduling process. \\ \hline
+\textbf{Precondition} & Patient logged in. \\ \hline
+\textbf{Test Steps} & 1. Add details. 2. Save data. 3. Measure response. \\ \hline
+\textbf{Input} & Medicine name, measurement, activity type, dosage, time. \\ \hline
+\textbf{Expected Results} & Data stored within 2 seconds. \\ \hline
+\textbf{Actual Results} & Data saved in 1.5 seconds. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: PT3-PT6 follow the same format:
+% PT3: Reminder Notification Performance (Pass)
+% PT4: Chat Performance (Pass)
+% PT5: Chatbot Response Time (Response in 3 seconds - Pass)
+% PT6: Multiple Users Load Test (System handled load - Pass)

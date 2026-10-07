@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class MeasurementTrackerScreen extends StatefulWidget {
-  const MeasurementTrackerScreen({super.key});
+  final String? viewingPatientId;
+  const MeasurementTrackerScreen({super.key, this.viewingPatientId});
 
   @override
   State<MeasurementTrackerScreen> createState() => _MeasurementTrackerScreenState();

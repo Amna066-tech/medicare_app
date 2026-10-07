@@ -6,6 +6,8 @@ import 'pharmacy_screen.dart'; // <-- 1. Import your new Pharmacy screen here
 import 'chatbot_screen.dart';
 import 'profile_screen.dart';
 
+import '../services/chat_notification_service.dart';
+
 class MainNavigationScreen extends StatefulWidget {
   final String? viewingPatientId;
 
@@ -18,6 +20,18 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    ChatNotificationService().startListening();
+  }
+
+  @override
+  void dispose() {
+    ChatNotificationService().stopListening();
+    super.dispose();
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -29,10 +43,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     // 2. Add PharmacyScreen into the list between Tracker and Chatbot
     final List<Widget> screens = [
       HomeScreen(viewingPatientId: widget.viewingPatientId),
-      const MeasurementTrackerScreen(),
-      const PharmacyScreen(), // Index 2: Pharmacy
+      MeasurementTrackerScreen(viewingPatientId: widget.viewingPatientId),
+      PharmacyScreen(viewingPatientId: widget.viewingPatientId), // Index 2: Pharmacy
       const ChatbotScreen(),
-      const ProfileScreen(),
+      ProfileScreen(viewingPatientId: widget.viewingPatientId),
     ];
 
     return Scaffold(

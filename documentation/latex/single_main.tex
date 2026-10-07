@@ -1,0 +1,1869 @@
+\documentclass[12pt, a4paper, oneside]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{pifont}
+\usepackage{pdflscape}
+
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\titleformat{\chapter}[display]{\normalfont\LARGE\bfseries\centering}{Chapter \thechapter}{20pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\lstset{language=Java, basicstyle=\small\ttfamily, breaklines=true, frame=single, tabsize=2, showstringspaces=false}
+
+\begin{document}
+
+%==============================================================================
+% TITLE PAGE
+%==============================================================================
+\begin{titlepage}
+\centering
+\vspace*{0.5cm}
+{\LARGE\bfseries Final Year Project Documentation}\\[0.5cm]
+{\Large\bfseries\underline{Medicare : Smart Healthcare Reminder}}\\[1.5cm]
+
+% University Logo - replace with your actual logo file
+% \includegraphics[width=3cm]{university_logo.png}\\[1cm]
+\vspace{2cm}
+
+{\large\textbf{By}}\\[0.5cm]
+
+\begin{tabular}{l l}
+Laiba Shamim & 2022-CWR-231 \\
+Amna Amjad & 2022-CWR-2 \\
+Javeria Batool & 2022-CWR-226 \\
+\end{tabular}\\[1cm]
+
+{\large\textbf{Under the Supervision of}}\\[0.3cm]
+{\large Mam Tayyiba Naeem}\\[1cm]
+
+{\large Bachelor of Science in [Information Technology],\\
+Session (2022--2026)\\[0.5cm]
+\textbf{FACULTY OF COMPUTING \&\\
+INFORMATION TECHNOLOGY (FCIT),}\\
+F.\,G Postgraduate College for Women,\\
+Kashmir Road Rawalpindi\\[0.3cm]
+\textbf{UNIVERSITY OF THE PUNJAB, LAHORE}}
+
+\vfill
+\end{titlepage}
+
+%==============================================================================
+% INNER TITLE PAGE
+%==============================================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+\vspace*{1cm}
+{\Large\bfseries Smart Healthcare Reminder}\\[0.5cm]
+A project presented to\\
+University of the Punjab, Lahore\\[0.5cm]
+In partial fulfilment\\
+of the requirement for the degree of\\[0.3cm]
+{\large Bachelor of Science in Information Technology,\\
+Session (2022--2026)}\\[0.5cm]
+\textbf{By}\\[0.3cm]
+\begin{tabular}{l l}
+Laiba Shamim & 087251 \\
+Amna Amjad & 087269 \\
+Javeria Batool & 087272 \\
+\end{tabular}\\[1cm]
+\textbf{FACULTY OF COMPUTING \&\\
+INFORMATION TECHNOLOGY (FCIT),}\\
+F.\,G Post Graduate College for Women\\
+Kashmir Road Rawalpindi\\
+\textbf{UNIVERSITY OF THE PUNJAB, LAHORE}
+\end{center}
+\vfill
+
+%==============================================================================
+% DECLARATION
+%==============================================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\Large\bfseries DECLARATION}
+\end{center}
+\vspace{1cm}
+
+We hereby declare that this software, neither the whole nor a part, was copied from any source. It is further declared that we have developed this software and accompanying report based on our effort. If any part of this project is proven to be copied from any source or found to be a reproduction of some other, we will stand by the consequences. No portion of the work presented has been submitted for any application for any other degree or qualification of this or any other university or institute of learning.
+
+\vspace{2cm}
+
+\begin{tabular}{@{}p{0.5\textwidth}p{0.5\textwidth}@{}}
+Laiba Shamim [087251] & Javeria Batool [087272] \\
+Signature: \rule{4cm}{0.4pt} & Signature: \rule{4cm}{0.4pt} \\
+\end{tabular}
+
+\vspace{1.5cm}
+
+Amna Amjad [087269]\\
+Signature: \rule{4cm}{0.4pt}
+
+\vfill
+
+%==============================================================================
+% CERTIFICATE OF APPROVAL
+%==============================================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\Large\bfseries CERTIFICATE OF APPROVAL}
+\end{center}
+\vspace{1cm}
+
+It is to certify that the final year project (FYP) of BSIT, session (2022--2026), the project \textbf{Smart HealthCare Reminder and Notification App} was developed by Laiba Shamim (087251), Amna Amjad (087269), Javeria Batool (087272) under the supervision of Mam Tayyiba, in my opinion it is fully appropriate in scope and quality for the degree of Bachelors of Science in Information Technology.
+
+\vspace{1.5cm}
+
+FYP Advisor: Mam Tayyiba Naeem\\
+Signature: \rule{5cm}{0.4pt}
+
+\vspace{1cm}
+
+\textbf{Signature (Faculty Advisory Committee (FAC))}
+
+\vspace{0.5cm}
+
+\begin{tabular}{|l|l|l|}
+\hline
+ & \textbf{FAC1} & \textbf{FAC2} \\ \hline
+\textbf{NAME} & Mam Tayyiba Naeem & \\ \hline
+\textbf{Signature} & & \\ \hline
+\end{tabular}
+
+\vspace{1.5cm}
+
+Head of FYP Coordination Office: Mam Tayyiba Naeem\\
+\hfill Signature: \rule{4cm}{0.4pt}
+
+\vspace{1cm}
+
+Head of Department, Information Technology: Prof. Lubna Zakia\\
+Signature: \rule{4cm}{0.4pt} \hfill Dated: \rule{3cm}{0.4pt}
+
+\vfill
+
+%==============================================================================
+% EXECUTIVE SUMMARY
+%==============================================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\Large\bfseries Executive Summary}
+\end{center}
+\vspace{0.5cm}
+
+Smart Health Reminder is an Android-based mobile application developed to help patients in managing their medications, health measurements, appointments and daily activities. The application aims to reduce missed doses, forgotten appointments by providing timely reminders and health tracking features. The application offers a complete health management system that allows users to add and manage medication, track daily intake, record important health measurements such as blood pressure and sugar levels, and schedule doctor appointments. A chatbot guides users and provides answers to simple health-related questions. The feedback feature allows users to send suggestions or complaints to the system.
+
+A key feature of the system is the integration of doctor and caregiver roles, making it more than just a reminder application. Patients can enter their disease information and send requests to doctors. The doctor can then access the patient's complete health profile. Based on this data, the doctor analyzes the patient's condition and provides personalized recommendations such as medication frequency, measurement schedules, activity plans, and caregiver support.
+
+One of the primary goals of Smart Healthcare Reminder is to provide an easy-to-use and accessible healthcare solution. The application is particularly useful for elderly patients, individuals with constant illness. Smart Healthcare Reminder provides a smart, reliable and user-friendly healthcare platform that increases medication adherence, improves health tracking and enhances overall patient self-management.
+
+\vfill
+
+%==============================================================================
+% ACKNOWLEDGEMENT
+%==============================================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\Large\bfseries Acknowledgement}
+\end{center}
+\vspace{1cm}
+
+We express our gratitude to our Allah Almighty and after that, we are thankful to our families who allowed us to get higher education, and we became capable of creating something productive. We're also thankful to our advisor and department faculty for their support.
+
+\vspace{2cm}
+
+\begin{tabular}{@{}l@{}}
+Laiba Shamim: Signature \rule{4cm}{0.4pt}\\[0.5cm]
+Amna Amjad: Signature \rule{4cm}{0.4pt}\\[0.5cm]
+Javeria Batool: Signature \rule{4cm}{0.4pt}\\
+\end{tabular}
+
+\vfill
+
+%==============================================================================
+% ABBREVIATIONS
+%==============================================================================
+\newpage
+\thispagestyle{empty}
+\begin{center}
+{\Large\bfseries Abbreviations}
+\end{center}
+\vspace{0.5cm}
+
+Table of all abbreviations and acronyms used in the FYP, along with their respective brief descriptions.
+
+\vspace{0.5cm}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Abbreviation} & \textbf{Description} \\ \hline
+IT & Information Technology \\ \hline
+FCF & Firebase Cloud Function \\ \hline
+FCM & Firebase Cloud Messaging \\ \hline
+BP & Blood Pressure \\ \hline
+DB & Database \\ \hline
+PU & Punjab University \\ \hline
+RAM & Random Access Memory \\ \hline
+UI & User Interface \\ \hline
+MVVM & Model-View-ViewModel \\ \hline
+\end{tabular}
+\end{table}
+
+
+\newpage
+\tableofcontents
+\newpage
+\listoftables
+\newpage
+\listoffigures
+
+\chapter{Introduction}
+\label{ch:introduction}
+
+In today's digital world, maintaining a healthy lifestyle has become increasingly challenging. Many users rely on paper notes or memory, which can lead to missed medications or appointments. Health information is usually kept in different places and not saved in one organized system. In many cases, people's memory becomes weaker as they get older. In earlier times, people only arranged their pills physically in boxes. There were no automatic reminders, no data storage, no tracking system, and no proper way to manage overall health information.
+
+Many applications are already available but most of them are not user-friendly, for example: Pill Reminder, Dosecast, Medisafe. These applications provide only medicine reminders; users cannot track their full health routine on one platform. This application brings the trend of mobile-based health management systems along with the problem to patients who missed their medicine dose and other regular routines.
+
+The purpose of this application is to manage health through technology and make a person's medical life easier. As healthcare needs became more complex, users required a system that could integrate multiple types of reminders in one application. Application Smart Healthcare Reminder allows users to maintain medication schedules, record health measurements, manage daily activities, and manage appointments.
+
+A key feature of the system is the integration of doctor and caregiver roles, making it more than just a reminder application. Patients can enter their disease information and send requests to doctors. The doctor can then access the patient's complete health profile. Based on this data, the doctor analyzes the patient's condition and provides personalized recommendations such as medication frequency, measurement schedules, and activity plans.
+
+The doctor can evaluate whether the patient is capable of managing their health independently or requires additional support. If necessary, the system allows the involvement of a caregiver who can manage healthcare activities on behalf of the patient. Depending on the patient's condition:
+\begin{itemize}
+    \item The patient may manage tasks independently
+    \item The caregiver may manage tasks
+    \item Or both patient and caregiver can collaboratively manage the healthcare routine
+\end{itemize}
+
+The system also includes an AI chatbot that provides intelligent health guidance by responding to user queries, offering basic medical advice, and assisting users in managing their daily healthcare activities. The system will send notifications at scheduled times. The doctor and patient can communicate through their respective dashboards to discuss recommendations and health-related concerns. Emergency contact allows users to save emergency contact details. The patient can quickly access this number in case of an emergency.
+
+The system is designed to be flexible and scalable, which means it can be used by different users with different needs. The application aims to fulfill these needs with interacting features with the help of several tools and technologies along with constraints and limitations.
+
+\section{Problem Statement}
+\label{sec:problem-statement}
+
+In today's era, people have a shortage of time, busy routines, or due to multiple health issues, they cannot manage their medical routine. According to studies, between 40\% and 75\% of adults fail to take their prescribed medication on time each day. As a result, individuals fail to take the right dosage at the right time, which may result in additional patient suffering and put their lives in danger.
+
+Many patients cannot manage their daily routine, which is essential for managing their health. There is a lack of coordination between patients, doctors, and caregivers. Doctors do not have access to patient adherence data, making it difficult to analyze patient conditions accurately. Similarly, patients who are critically ill or elderly often require assistance but do not have a proper system to involve caregivers effectively.
+
+This application, Smart Healthcare Reminder, will work as an intelligent mobile-based health assistant which helps patients manage their daily health routine.
+
+\section{Problem Solution}
+\label{sec:problem-solution}
+
+Many reminder applications are available in the market but they allow users to enter the medicine name, time, or quantity and give notification at that time. However, this application fulfills this gap and provides all-in-one solutions and not only provides medicine reminders but also manages patients' daily routines such as Measurement (BP, sugar, Weight), Activity (Meal, Water Intake, Walking, Exercise, Yoga, Cycling), Appointment, and Refill.
+
+The Appointment module will help users to remind their medical checkup. The Refill module will help to restock their medicine when stock is limited. The Chatbot will guide users and provide answers to simple health-related questions and allow users to give feedback which can be viewed by admin.
+
+A key enhancement of the system is the integration of doctor and caregiver roles. Patients can send requests to doctors who can then access the patient's complete health profile, including reminder adherence and measurement history. Based on this data, the doctor can analyze the patient's condition and provide personalized recommendations, such as medication adjustments, monitoring frequency, and the need for caregiver support.
+
+After the doctor approves the patient's request, a chat option becomes available for both the doctor and patient, and its caregiver if the doctor gives a recommendation of caregiver to patient. The patient and caregiver can also communicate through their respective dashboards. The doctor and patient can communicate through their respective dashboards to discuss recommendations, health-related concerns, and follow-up information.
+
+\section{Objectives of Proposed System}
+\label{sec:objectives}
+
+\begin{enumerate}
+    \item The user will authenticate the system with name, email, password, Date of Birth, and gender.
+    \item To never miss a dose, allow application ``Medicare'' to send you notifications.
+    \item Patient section allows users to send requests, view doctor recommendations, and manage reminders based on their health plan.
+    \item Doctor section allows doctors to review patient profiles, analyze health data, and provide recommendations.
+    \item After submitting a recommendation, the doctor can provide their Easypaisa or JazzCash number to the relevant patient through the chat. The patient can access the Pay Doctor option under the doctor section, enter the doctor's name and payment number, and submit the transaction ID along with a payment receipt screenshot.
+    \item The doctor approves the patient's request, a chat option becomes available for both the doctor and patient.
+    \item Caregiver section allows caregivers to monitor patient data, manage health tasks, update reminders, and assist the patient in following their health plan and can also communicate with the patient.
+    \item Medication section adds medication to your treatment plan to get reminders.
+    \item Measurement section helps to measure health data like blood pressure, weight, and sugar. Setup reminders for daily habits such as walking, drinking water, meal, exercise, yoga, or cycling.
+    \item Appointment module will help users to remind their medical checkup.
+    \item Pharmacy Medicine Delivery allows patients to order required medicines, check availability, and receive them at their specified delivery address.
+    \item Chatbot will guide users and give basic health tips.
+    \item Refill module will help to restock their medicine.
+    \item Notifications will be sent based on the reminder time set by the user in different modules.
+    \item Profile section to view intake progress stored in history section and feedback option will allow users to share their experience and complications.
+    \item Emergency contact allows users to save emergency contact details. The patient can quickly access this number in case of an emergency.
+\end{enumerate}
+
+\section{Scope}
+\label{sec:scope}
+
+The scope of the Smart Healthcare Reminder system is to develop a mobile application that helps users manage their daily health activities in an organized and simple way. Patients can manage their health routines and follow doctor recommendations. Doctors can access patient profiles after appointments, analyze health data, and provide recommendations such as treatment plans, monitoring frequency, and caregiver requirements. Caregivers can assist patients by managing tasks and monitoring their health when needed.
+
+The application will allow users to set reminders for medicines, health measurements (blood pressure, sugar level, weight), physical activities (walking, drinking water, eating meal, exercise, yoga, cycling), medical appointments, and medicine refill. It includes a chatbot that guides users and answers simple health questions. Pharmacy Medicine Delivery allows patients to order required medicines, check availability, and receive them at their specified delivery address. It allows users to give feedback which can be viewed by admin.
+
+It will send notifications at scheduled times and allow users to mark tasks as Done or Dismiss (marked by patient/caregiver). Measurement tracker allows users to record their values (BP (systolic/diastolic), sugar level, weight) and consistently monitor them. The system will also store daily records so users can track their health progress over time. This application is developed for individuals who want to manage their daily health routine and avoid forgetting important health tasks. Emergency contact allows users to save emergency contact details. The main goal of the project is to offer a simple, easy-to-use, and reliable health reminder application where users can manage their health tasks in one place.
+
+\section{System Components}
+\label{sec:system-components}
+
+The Application is divided into main parts:
+\begin{enumerate}
+    \item Patient
+    \item Caregiver
+    \item Doctor
+    \item Pharmacist
+    \item Admin
+\end{enumerate}
+
+The Application will work in online mode. When the user has an active internet connection, it will allow users to manage Medication, Measurement, Appointments, Activities, Refill, and Profile information. All updates, notifications, and data backup are handled online.
+
+\subsection{Module 1: User Authentication (End User Mobile App)}
+The list of features this module will have and how it will be used are the following:
+\begin{enumerate}
+    \item A splash screen to initialize or load user-specific data if authenticated, else redirected to the authorization screen. The splash screen will check if there's a user logged in or not using Firebase Authentication. If a user is logged in then they will be redirected to the home screen.
+    \item The authorization page will have the following options: Log In and Sign Up.
+    \item The Sign-Up screen will ask the user to enter personal details like email, full name, date of birth, gender, and password.
+    \item The Log In screen will ask the user to enter the registered email and password. After validation, the user will be redirected to the home screen. The login screen will also have an option for forgotten password with email verification.
+\end{enumerate}
+
+\subsection{Module 2: Patient}
+Patient Module allows users to manage their daily health activities such as setting medication reminders, tracking measurements (BP, sugar, weight), and managing daily routines. Patients can send requests to doctors and follow their recommendations.
+
+\subsection{Module 3: Caregiver}
+Caregiver Module allows caregivers to monitor patient health data and manage healthcare tasks on behalf of the patient. Caregivers can view reminders, update task status, and track patient progress.
+
+\subsection{Module 4: Doctor}
+Doctor Module allows doctors to view patient profiles after accepting the request and analyze their health data, including measurements and reminder history. Doctors can provide recommendations such as medication plans and monitoring frequency.
+
+\subsection{Module 5: Pharmacist}
+The pharmacist receives the request through the Pharmacy Dashboard and provides the medicine that is in stock and delivery cost. The pharmacist then reviews and accepts the delivery address to proceed with the medicine delivery.
+
+\subsection{Module 6: Chat}
+The doctor approves the patient's request, a chat option becomes available for both the doctor and patient. The doctor and patient can communicate through their respective dashboards to discuss recommendations and health-related concerns.
+
+\subsection{Module 7: Payment Feature}
+After submitting a recommendation, the doctor can provide their Easypaisa or JazzCash number to the relevant patient through the chat. The patient can access the Pay Doctor option under the doctor section, enter the doctor's name and payment number, and submit the transaction ID along with a payment receipt screenshot. The payment remains pending until the doctor reviews it. The doctor can then Approve or Reject the payment.
+
+\subsection{Module 8: Medication}
+The user can add a new medication by entering details such as medicine name, dosage, frequency, start date, end date, and reminder time. After saving the information, the medication is added to the reminder list. Once a medication is added, the system automatically gives reminders based on the specified time.
+
+\subsection{Module 9: Measurement}
+The user can set reminders for health measurements such as blood pressure, sugar level, and body weight by selecting the measurement type and preferred reminder time.
+
+\subsection{Module 10: Activity}
+The user can set reminders for daily activities such as drinking water, eating meals, walking, exercise, yoga, or cycling by selecting an activity type and preferred reminder time.
+
+\subsection{Module 11: Medical Professional}
+The Medical Professional module allows patients to connect with doctors and caregivers and manage appointments. Users can send doctor connection requests with their symptoms or invite caregivers using their name and email.
+
+\subsection{Module 12: Refill Medicines}
+The user can set refill reminders for their medicines by entering details such as medicine name or stock in the medication section. The system monitors the refill schedule.
+
+\subsection{Module 13: Measurement Tracker}
+The user can record and track their health measurements such as blood pressure, blood sugar, and body weight. The system saves the recorded measurements so the user can view them later.
+
+\subsection{Module 14: Pharmacy Delivery Service}
+Pharmacy Delivery Service allows patients to search for their required medicines, enter the medicine name and quantity, and check their availability for delivery by the pharmacist.
+
+\subsection{Module 15: Chatbot Assistance}
+The chatbot works as an assistant that helps users with basic health-related questions. The user can ask questions about reminders or general health tips.
+
+\subsection{Module 16: Notification and Reminder}
+The system automatically generates and schedules notifications based on the reminder time set by the user in different modules. At the scheduled time, the user receives a notification reminding them of a specific task.
+
+\subsection{Module 17: Track Intake}
+The track intake module tracks the medicine intake, also measurement (BP, Sugar, weight), daily activities, and appointments.
+
+\subsection{Module 18: Profile Section}
+The profile section includes a history option which allows users to view the summary of health-related progress. Users can submit feedback in the feedback option and also include an emergency contact option.
+
+\subsection{Module 19: Admin}
+The admin can view registered users. Verify the doctor, pharmacist, and nurse license. Users can submit feedback which can be viewed by the admin.
+
+\section{Related System Analysis / Literature Review}
+\label{sec:literature-review}
+
+With the increased use of smartphones and mobile-health technology, many reminder applications have entered the market. Most of the applications currently available primarily focus only on medicine reminders. This proposed application aims to fill this gap by providing an all-in-one solution.
+
+\begin{table}[H]
+\centering
+\caption{Comparison with Existing Applications}
+\label{tab:comparison}
+\begin{tabularx}{\textwidth}{|l|X|X|}
+\hline
+\textbf{Application} & \textbf{Weakness} & \textbf{Proposed Solution} \\ \hline
+Medisafe & Provides only medicine reminder. User cannot track their full health routine at one platform. & App manages complete health routine, user will not miss important health tasks. \\ \hline
+Dosecast & Gives basic refill reminders, does not give smart options like medicine quantity tracking or low-stock alert. & Medicare tracks medicine and sends a refill reminder when stock is low. \\ \hline
+Pill Reminder & Offers a simple alarm-based reminder with no intake tracking or health summary. & Application gives intelligent reminders, intake tracking (Done, Dismiss) and detailed health progress summary. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Vision Statement}
+\label{sec:vision}
+
+To create an intelligent mobile application that helps individuals manage their daily health tasks by providing smart reminders for medicine, measurement, activities, appointments, and refill. The application also includes a measurement tracker to record and monitor blood pressure, blood sugar, weight, and a chatbot that provides guidance, answers basic health questions, and helps users manage reminders and coordinate with doctors, caregivers, and pharmacists.
+
+\section{System Limitations and Constraints}
+\label{sec:limitations}
+
+\textbf{Limitations:}
+\begin{itemize}
+    \item \textbf{Internet dependency:} The application needs compatible smartphones and stable internet, which may limit some users.
+    \item \textbf{User dependency:} Reminder effectiveness depends on user interaction---correctly setting reminders and responding to notifications.
+    \item \textbf{Notification delays:} System or device restrictions can delay notifications.
+\end{itemize}
+
+\textbf{Constraints:}
+\begin{enumerate}
+    \item The application is designed only for Android devices.
+    \item The application reminder functionality depends on user allowing notification permission.
+\end{enumerate}
+
+\section{Tools and Technologies}
+\label{sec:tools}
+
+\begin{table}[H]
+\centering
+\caption{Tools and Technologies}
+\label{tab:tools}
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\textbf{Tools/Technology} & \textbf{Version} & \textbf{Rationale} \\ \hline
+Android Studio & Panda 2 (2025.2.3) & Official IDE for Android app development. \\ \hline
+Firebase Auth & 5.4.1 & For authentication and registration of users. \\ \hline
+Draw.io & 24.x & For creating diagrams. \\ \hline
+Flutter & 3.38.6 & Familiarity with Flutter; modern apps are developed in Flutter. \\ \hline
+GitHub & Built-in Android Studio & Version control and hosting source code. \\ \hline
+Cloudinary & Cloud (API) & Cloud storage and file uploads. \\ \hline
+Firebase Firestore & 5.6.0 & Database for storing user history, chat, and reminders. \\ \hline
+Flutter Local Notification & 17.2.4 & Local notifications to remind or alert the user. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Project Deliverables}
+\label{sec:deliverables}
+
+Our system will have the following deliverables by the end of 7th semester:
+\begin{enumerate}
+    \item Project Proposal
+    \item Final Year Project Registration Form
+    \item Software Requirement Specification (SRS)
+    \item Software Design Specification (SDS)
+    \item Prototype
+    \item Comprehensive Evaluation Document (Proposal, SRS, SDS)
+\end{enumerate}
+
+Our system will have the following deliverables by the end of 8th semester:
+\begin{enumerate}
+    \item Coding/Implementation
+    \item Testing
+    \item Deployment
+    \item Final
+    \item Presentation \& Final Evaluation
+\end{enumerate}
+
+\section{Project Planning}
+\label{sec:planning}
+
+\begin{table}[H]
+\centering
+\caption{Project Planning Schedule}
+\label{tab:planning}
+\begin{tabular}{|c|l|l|l|l|c|}
+\hline
+\textbf{\#} & \textbf{Task Name} & \textbf{Duration} & \textbf{Start} & \textbf{Finish} & \textbf{Pred.} \\ \hline
+1 & Planning & 14 days & 01/12/25 & 14/12/25 & 1 \\ \hline
+2 & Requirement Gathering & 17 days & 16/12/25 & 01/01/26 & 2 \\ \hline
+3 & Analysis & 30 days & 02/01/26 & 31/01/26 & 2 \\ \hline
+4 & Design & 60 days & 02/02/26 & 02/04/26 & 2 \\ \hline
+5 & Coding & 125 days & 01/05/26 & 17/09/26 & 2 \\ \hline
+6 & Testing & 25 days & 24/08/26 & 18/09/26 & 5 \\ \hline
+7 & Implementation & 10 days & 19/09/26 & 28/09/26 & 6 \\ \hline
+8 & Documentation & 253 days & 01/12/25 & 30/09/26 & 2 \\ \hline
+\end{tabular}
+\end{table}
+
+\textbf{Gantt Chart:}\\
+\textit{(Include Gantt Chart image here)}\\
+% \includegraphics[width=\textwidth]{gantt_chart.png}
+
+\section{Summary}
+\label{sec:ch1-summary}
+
+To get together with the emerging trend of mobile-health management systems and solve patients' problems who forget about their dose and regular routine, our project will deliver its modules and fulfill its goals and objectives within the planned timeframe while maintaining the scope of the project to deliver a quality product.
+
+\chapter{Requirements Analysis}
+\label{ch:analysis}
+
+This chapter focuses on requirement identification, elicitation, and analysis. The users are categorized into classes. For requirement identification and elicitation, open interviews, ethnography, and use case analysis are used. The identified requirements are categorized into functional and non-functional requirements along with their use case descriptions and diagrams.
+
+\section{User Classes and Characterization}
+\label{sec:user-classes}
+
+\begin{table}[H]
+\centering
+\caption{User Classes and Characteristics}
+\label{tab:user-classes}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{User Class} & \textbf{Characterization} \\ \hline
+Patient & The patient logs into the application to manage medications, health measurements, and appointment reminders. \\ \hline
+Caregiver & The caregiver is an authorized person who can log in to manage reminders and health tasks on behalf of the patient when the patient is unavailable. \\ \hline
+Doctor & The doctor logs into the application to view patient profiles after appointments and analyze their health data. The doctor gives advice on medicine, measurement, activity plan, and caregiver support. \\ \hline
+Pharmacist & The pharmacist receives the request through the Pharmacy Dashboard and provides the medicine and delivery cost. The pharmacist checks and accepts the delivery address to send the medicine. \\ \hline
+Admin & The admin can view registered users. Verify the doctor, pharmacist, and nurse license. Users can submit feedback which can be viewed by the admin. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Requirement Identifying Techniques}
+\label{sec:req-techniques}
+
+\subsection{Interview}
+Open interviews were conducted with individuals from different age groups to understand the difficulty they face in managing medicines, appointments, and daily health activities. The application helps to identify common problems such as forgetting doses and missing appointments, which helps in defining the system requirements.
+
+\subsection{Ethnography or Observation}
+Software systems are not used alone---they work in social and organizational environments. User needs are often affected by their daily routines and surroundings. Ethnography is an observational technique that can be used to understand operational processes and help derive requirements for software to support these processes. It was noticed that many people rely on memory or simple alarms and often forget important health tasks. This observation helped in identifying the need for a structured and organized healthcare reminder system.
+
+\section{Use Case Model}
+\label{sec:use-case-model}
+
+% Include your use case diagram images here
+% \begin{figure}[H]
+% \centering
+% \includegraphics[width=\textwidth]{use_case_diagram_1.png}
+% \caption{Use Case Diagram 1}
+% \label{fig:use-case-1}
+% \end{figure}
+
+\textit{(Include Use Case Diagram images here.)}
+
+\section{Use Case Descriptions}
+\label{sec:use-case-desc}
+
+% Use Case Descriptions - All 24 Use Cases
+
+\begin{table}[H]
+\centering
+\caption{Use Case 1: Sign Up}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Use Case ID} & UC-1 \\ \hline
+\textbf{Use Case Name} & Sign Up \\ \hline
+\textbf{Actors} & Patient/Caregiver/Doctor/Pharmacist \\ \hline
+\textbf{Description} & User creates a new account by filling the sign-up form. \\ \hline
+\textbf{Trigger} & User opens the app and selects Sign Up. \\ \hline
+\textbf{Preconditions} & Internet connection is available. \\ \hline
+\textbf{Postconditions} & User's account is created and stored in the database. \\ \hline
+\textbf{Normal Flow} & 1. User opens app and clicks Sign Up. 2. Enters name, email, DOB, gender, password. 3. App validates and creates account. 4. Verification email sent. 5. User redirected to login. \\ \hline
+\textbf{Alternative Flows} & If email already exists, error is shown. \\ \hline
+\textbf{Business Rules} & Email must be unique and valid. Password must meet security requirements. \\ \hline
+\textbf{Assumptions} & Internet is available. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Use Case 2: Log In}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Use Case ID} & UC-2 \\ \hline
+\textbf{Use Case Name} & Log In \\ \hline
+\textbf{Actors} & Patient/Caregiver/Doctor/Pharmacist \\ \hline
+\textbf{Description} & Allows user to access the system by entering email and password. \\ \hline
+\textbf{Trigger} & User opens the app and selects Log In. \\ \hline
+\textbf{Preconditions} & User must have a registered account. Internet connection is available. \\ \hline
+\textbf{Postconditions} & User is authenticated and redirected to the home screen. \\ \hline
+\textbf{Normal Flow} & 1. User opens login screen. 2. Enters email and password. 3. System validates credentials. 4. User is redirected to Home screen. \\ \hline
+\textbf{Alternative Flows} & If credentials are wrong, show error message. If email is not verified, ask user to verify. \\ \hline
+\textbf{Business Rules} & Only registered users can log in. \\ \hline
+\textbf{Assumptions} & Internet is available. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Use Case 3: Forgot Password}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Use Case ID} & UC-3 \\ \hline
+\textbf{Use Case Name} & Forgot Password \\ \hline
+\textbf{Actors} & Patient/Caregiver/Doctor/Pharmacist \\ \hline
+\textbf{Description} & Allows user to recover password by entering registered email. \\ \hline
+\textbf{Trigger} & User clicks ``Forgot Password'' on login screen. \\ \hline
+\textbf{Preconditions} & User must have a registered account. \\ \hline
+\textbf{Postconditions} & A password reset link is sent to the user's email. \\ \hline
+\textbf{Normal Flow} & 1. User selects Forgot Password. 2. Enters registered email. 3. System sends reset link. 4. User resets password via email. \\ \hline
+\textbf{Alternative Flows} & If email is not registered, system shows error. \\ \hline
+\textbf{Business Rules} & Email must be registered. Reset link expires after limited time. \\ \hline
+\textbf{Assumptions} & Internet and email access available. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Use Case 4: Add Medication}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Use Case ID} & UC-4 \\ \hline
+\textbf{Use Case Name} & Add Medication \\ \hline
+\textbf{Actors} & Patient/Caregiver \\ \hline
+\textbf{Description} & User adds medication details to set up a reminder. \\ \hline
+\textbf{Trigger} & User navigates to the Medication section and taps Add. \\ \hline
+\textbf{Preconditions} & User must be logged in. \\ \hline
+\textbf{Postconditions} & Medication is saved and a reminder is scheduled. \\ \hline
+\textbf{Normal Flow} & 1. User opens Medication screen. 2. Enters medicine name, dosage, frequency, start/end date, reminder time. 3. System validates and saves. 4. Reminder notification is scheduled. \\ \hline
+\textbf{Alternative Flows} & If required fields are empty, show error message. \\ \hline
+\textbf{Business Rules} & Medicine name cannot be empty. Start date cannot be later than end date. \\ \hline
+\textbf{Assumptions} & Internet is available. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Use Case 5: Set Measurement Reminder}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Use Case ID} & UC-5 \\ \hline
+\textbf{Use Case Name} & Set Measurement Reminder \\ \hline
+\textbf{Actors} & Patient/Caregiver \\ \hline
+\textbf{Description} & User sets a reminder for health measurement (BP, sugar, weight). \\ \hline
+\textbf{Trigger} & User navigates to Measurement section and selects Add Reminder. \\ \hline
+\textbf{Preconditions} & User must be logged in. \\ \hline
+\textbf{Postconditions} & Measurement reminder is saved and notification scheduled. \\ \hline
+\textbf{Normal Flow} & 1. User selects measurement type. 2. Sets reminder time. 3. System validates and saves. 4. Notification is scheduled. \\ \hline
+\textbf{Alternative Flows} & If type or time is not selected, show error. \\ \hline
+\textbf{Business Rules} & Measurement type must be selected. Reminder time must be valid. \\ \hline
+\textbf{Assumptions} & Internet is available. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Use Case 6: Set Activity Reminder}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Use Case ID} & UC-6 \\ \hline
+\textbf{Use Case Name} & Set Activity Reminder \\ \hline
+\textbf{Actors} & Patient/Caregiver \\ \hline
+\textbf{Description} & User sets reminders for daily activities (walking, water, meals, exercise, yoga, cycling). \\ \hline
+\textbf{Trigger} & User navigates to Activity section. \\ \hline
+\textbf{Preconditions} & User must be logged in. \\ \hline
+\textbf{Postconditions} & Activity reminder is saved and notification scheduled. \\ \hline
+\textbf{Normal Flow} & 1. User selects activity type. 2. Sets reminder time and frequency. 3. System validates and saves. 4. Notification is scheduled. \\ \hline
+\textbf{Alternative Flows} & If fields are empty, show error. \\ \hline
+\textbf{Business Rules} & Activity type must be selected. \\ \hline
+\textbf{Assumptions} & Internet is available. \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: Use Cases 7-24 follow the same tabular format.
+% Due to space, they are summarized here. In your final document,
+% replicate the table structure above for each use case:
+% UC-7: Send Request to Doctor
+% UC-8: Send Request to Caregiver
+% UC-9: Doctor Module (View Patient Data, Give Recommendations)
+% UC-10: Doctor Recommendation
+% UC-11: In-App Chat (Doctor-Patient)
+% UC-12: In-App Chat (Patient-Caregiver)
+% UC-13: Doctor Payment
+% UC-14: Caregiver Module
+% UC-15: Set Appointment Reminder
+% UC-16: Refill Reminder
+% UC-17: Measurement Tracker
+% UC-18: Pharmacy Medicine Delivery
+% UC-19: Chatbot Assistance
+% UC-20: Track Intake
+% UC-21: View Profile
+% UC-22: Admin Module
+% UC-23: Feedback
+% UC-24: Emergency Contact
+
+\begin{table}[H]
+\centering
+\caption{Use Case 7: Send Request to Doctor}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Use Case ID} & UC-7 \\ \hline
+\textbf{Use Case Name} & Send Request to Doctor \\ \hline
+\textbf{Actors} & Patient \\ \hline
+\textbf{Description} & The patient sends a connection request to a doctor by entering doctor details and symptoms. \\ \hline
+\textbf{Trigger} & Patient selects Doctor tab in Medical Professional section. \\ \hline
+\textbf{Preconditions} & Patient must be logged in. Doctor must be registered. \\ \hline
+\textbf{Postconditions} & Request is sent and status is set to Pending. \\ \hline
+\textbf{Normal Flow} & 1. Patient opens Doctor section. 2. Enters doctor name, email, speciality, symptoms. 3. Sends request. 4. System saves with Pending status. \\ \hline
+\textbf{Alternative Flows} & If doctor email is not found, error shown. \\ \hline
+\textbf{Business Rules} & All required fields must be filled. \\ \hline
+\textbf{Assumptions} & Internet is available. \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Use Case 8: Send Request to Caregiver}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Use Case ID} & UC-8 \\ \hline
+\textbf{Use Case Name} & Send Request to Caregiver \\ \hline
+\textbf{Actors} & Patient \\ \hline
+\textbf{Description} & The patient sends a request to a caregiver by entering their name and email. \\ \hline
+\textbf{Trigger} & Patient selects Caregiver tab in Medical Professional section. \\ \hline
+\textbf{Preconditions} & Patient must be logged in. Caregiver must be registered. \\ \hline
+\textbf{Postconditions} & Request sent and status set to Pending. \\ \hline
+\textbf{Normal Flow} & 1. Patient opens Caregiver section. 2. Enters caregiver name and email. 3. Sends request. 4. System saves with Pending status. \\ \hline
+\textbf{Alternative Flows} & If caregiver email not found, error shown. \\ \hline
+\textbf{Business Rules} & All required fields must be filled. \\ \hline
+\textbf{Assumptions} & Internet is available. \\ \hline
+\end{tabularx}
+\end{table}
+
+% Continue with remaining use cases in the same format...
+% UC-9 through UC-24 should be added following the same table pattern.
+
+
+\section{Functional Requirements}
+\label{sec:functional-req}
+
+This section describes the functional requirements of the system expressed in natural language style. This section is organized by features as a system feature name and specific functional requirements associated with this feature.
+
+% Functional Requirements - FR-1 through FR-24
+
+\begin{table}[H]
+\centering
+\caption{Functional Requirement 1: User Profile Management}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Identifier} & FR-1 \\ \hline
+\textbf{Title} & User Profile Management \\ \hline
+\textbf{Requirement} & The user shall be able to create and manage their profile by entering personal information such as full name, email, Date of Birth, gender, and password. When a user selects their role, it will also enter a license number or speciality. The user shall be able to login by entering email and password. \\ \hline
+\textbf{Source} & User Requirement, System Requirement \\ \hline
+\textbf{Rationale} & It provides a secure environment and collects profile data. \\ \hline
+\textbf{Business Rule} & User Date of Birth must follow a format (YYYY/MM/DD). Gender selection must be from predefined options (Male, Female, Others). \\ \hline
+\textbf{Dependencies} & Internet connection, Firebase Authentication \\ \hline
+\textbf{Priority} & Medium \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Functional Requirement 2: Forgot Password}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Identifier} & FR-2 \\ \hline
+\textbf{Title} & Forgot Password \\ \hline
+\textbf{Requirement} & The end user will be able to recover the password by entering a registered email and receiving a password reset link. \\ \hline
+\textbf{Source} & System Requirement \\ \hline
+\textbf{Rationale} & Support work will be reduced and user will recover their password easily. \\ \hline
+\textbf{Business Rule} & Password should expire after a limited time. \\ \hline
+\textbf{Dependencies} & FR-1 \\ \hline
+\textbf{Priority} & Medium \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Functional Requirement 3: Patient Health Management}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Identifier} & FR-3 \\ \hline
+\textbf{Title} & Patient Health Management \\ \hline
+\textbf{Requirement} & The system allows patients to manage medications, health data, daily activities, and appointments. It supports intake updates, reminders, pharmacy, chatbot access, history, emergency contacts and feedback. \\ \hline
+\textbf{Source} & User Requirement \\ \hline
+\textbf{Rationale} & This feature helps patients manage their health efficiently in one place, reduces missed medications, and improves overall care and monitoring. \\ \hline
+\textbf{Business Rule} & Record tasks, validate numeric data and send reminders. \\ \hline
+\textbf{Dependencies} & Authentication, database, notifications and internet connection \\ \hline
+\textbf{Priority} & High \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: FR-4 through FR-24 follow the same tabular format.
+% Add them following the same pattern as above.
+% FR-4: Caregiver Assistance (High)
+% FR-5: Pharmacist Medicine and Delivery Management (High)
+% FR-6: Doctor (High)
+% FR-7: In-app Chat (High)
+% FR-8: Doctor's Payment (High)
+% FR-9: Add Medication (High)
+% FR-10: Set Measurement Reminder (High)
+% FR-11: Set Activity Reminder (Medium)
+% FR-12: Medical Professional (High)
+% FR-13: Appointment Reminder (High)
+% FR-14: Medicine Refill Reminder (High)
+% FR-15: Edit Health Task (High)
+% FR-16: Record Measurement Data (High)
+% FR-17: Pharmacy Medicine Delivery (Medium)
+% FR-18: Chatbot Assistance (Medium)
+% FR-19: Receive Notification (Medium)
+% FR-20: Track Intake (High)
+% FR-21: View User Profile (High)
+% FR-22: Admin (High)
+% FR-23: Feedback (High)
+% FR-24: Emergency Contact (High)
+
+
+\section{Non-Functional Requirements}
+\label{sec:non-functional-req}
+
+Non-functional requirements are the constraints that specify the quality attributes of software. They are important because they can significantly impact the overall quality and success of a software system.
+
+\subsection{Reliability}
+The Smart Healthcare Reminder application should work smoothly and be available most of the time. The application should recover automatically if small errors occur and keep important data safe like reminders, intake tracking, and user profiles.
+
+\subsection{Usability}
+The application should be easy to use for all users including patients, caregivers, doctors, pharmacists, and administrators. The system should have a simple and clear interface so users should easily perform tasks like adding reminders, tracking intake, viewing profiles, and using the chatbot.
+
+\subsection{Performance}
+The application should load screens quickly under normal conditions. It should handle multiple users at the same time without slowing down. Features like saving reminders, recording measurement values, and chatbot should respond smoothly with minimal delay.
+
+\subsection{Security}
+The application should protect all user data such as personal information, health records, and reminders. Only authorized users can access the system and each user can access their own data. The system should use role-based access so that admin and users have different accessibility.
+
+\section{External Interface Analysis}
+\label{sec:external-interface}
+
+\subsection{User Interface Requirements}
+\begin{itemize}
+    \item The app follows standard design principles for clarity and ease of use.
+    \item It will adjust to different screen sizes and devices.
+    \item Users will receive clear notifications for their actions.
+\end{itemize}
+
+\subsection{Software Interfaces}
+\begin{itemize}
+    \item The app will run on Android.
+    \item Firebase will be used for data storage and management.
+\end{itemize}
+
+\subsection{Hardware Interfaces}
+\begin{itemize}
+    \item Users will access the application mainly through smartphones and tablets.
+\end{itemize}
+
+\subsection{Communication Interfaces}
+\begin{itemize}
+    \item The application will use standard mobile communication methods and secure protocols for data exchange.
+\end{itemize}
+
+\subsection{Error Handling and Reporting}
+\begin{itemize}
+    \item The application handles errors by checking user input, login details, internet connection, and notification permission. When a problem occurs, clear messages are shown to help users fix it.
+\end{itemize}
+
+\section{Summary}
+\label{sec:ch2-summary}
+
+Chapter 2 outlines the requirements of the Smart Healthcare Reminder application, detailing how users can register, set reminders for medication, measurement, activity, appointment, and refills, and track their daily intake. This chapter also outlines non-functional requirements such as reliability, usability, and security along with system interfaces used for notification, data storage, and user interaction.
+
+\chapter{Design and Architecture}
+\label{ch:design}
+
+\section{System Design}
+
+This chapter explains the overall system design and its detailed analysis. It includes key design considerations and system structure. The design models used in this project include sequence diagrams, state diagrams, class diagrams, and component diagrams, each representing a different perspective of the system's behavior and structure. For the application architecture, the MVVM (Model-View-ViewModel) pattern is adopted because it provides clear separation of responsibilities, improves modularity, and enhances testability and maintainability of code.
+
+\subsection{Design Considerations}
+
+\textbf{Assumptions and Dependencies:}\\
+Following assumptions and dependencies were considered during the system design: the user will have a stable internet connection for data synchronization and authentication through Firebase services. The user is also expected to use an Android device running version 7 or above with Google Play services enabled, as notification and background reminder functionality depends on it. The system assumes that the device has at least 4GB of RAM and 3GB of free storage to install the application.
+
+Most assumptions, dependencies, and system constraints are further discussed in Chapter 1.
+
+\textbf{Limitations:}
+\begin{enumerate}
+    \item The application is designed for mobile use and may have limited functionality on desktop browsers.
+    \item The application does not provide medical diagnosis.
+\end{enumerate}
+
+\textbf{Risks:}
+\begin{enumerate}
+    \item There is a risk of downtime if the Firebase server experiences issues, which could disrupt access to the app.
+    \item Sensitive user data could be at risk if security measures like authentication are not properly implemented.
+\end{enumerate}
+
+\section{Design Models}
+
+Design models provide structured representations of the system from multiple viewpoints. Such models are used to convey the view of application to other stakeholders. It purposely leaves out detail to make it easier to understand.
+
+\subsection{Class Diagram}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{class_diagram.png}
+\caption{Class Diagram}
+\label{fig:class-diagram}
+\end{figure}
+
+\subsection{Sequence Diagrams}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_patient.png}
+\caption{Sequence Diagram for Patient}
+\label{fig:seq-patient}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_caregiver.png}
+\caption{Sequence Diagram for Caregiver}
+\label{fig:seq-caregiver}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_doctor.png}
+\caption{Sequence Diagram for Doctor}
+\label{fig:seq-doctor}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_pharmacist.png}
+\caption{Sequence Diagram for Pharmacist}
+\label{fig:seq-pharmacist}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{sequence_admin.png}
+\caption{Sequence Diagram for Admin}
+\label{fig:seq-admin}
+\end{figure}
+
+\subsection{State Diagrams}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_patient.png}
+\caption{State Diagram for Patient}
+\label{fig:state-patient}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_doctor.png}
+\caption{State Diagram for Doctor}
+\label{fig:state-doctor}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_admin.png}
+\caption{State Diagram for Admin}
+\label{fig:state-admin}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_caregiver.png}
+\caption{State Diagram for Caregiver}
+\label{fig:state-caregiver}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{state_pharmacist.png}
+\caption{State Diagram for Pharmacist}
+\label{fig:state-pharmacist}
+\end{figure}
+
+\section{Architectural Design}
+
+The Smart Healthcare Reminder application follows the Model-View-ViewModel (MVVM) architecture. This architecture divides the application into three main layers which help keep the code organized, makes the system easy to manage, and simplifies testing and maintenance.
+
+\subsection{Architecture Pattern: MVVM}
+
+\textbf{Model:} The model layer handles the data of the application. It stores, retrieves, and processes data from the database. In this project, the model layer includes user profile information, medication reminders, health measurement data, activity reminders, appointment schedules, medicine refill reminders, track intake records, chat details, payment details, feedback data, emergency contact details, chatbot query and response data, and storing/retrieving data from Firebase Firestore.
+
+\textbf{View:} The view layer is the user interface of the application. It is the part that users interact with directly. It displays information and allows users to perform actions. The View layer includes login/registration screens, home screen, all module-specific screens, and role-based dashboards.
+
+\textbf{ViewModel:} The ViewModel acts as a bridge between the Model and View layers. It manages the application logic and prepares data so it can be easily displayed in the user interface.
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=0.8\textwidth]{architecture_diagram.png}
+\caption{Architecture Diagram}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Component Structure}
+
+\begin{table}[H]
+\centering
+\caption{Component Structure}
+\label{tab:components}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Component} & \textbf{Role} \\ \hline
+User Authentication Module & Handles user registration, login, and logout using Firebase Authentication. \\ \hline
+Medication Management Module & Allows users to add, edit, and manage medicine reminders and schedules. \\ \hline
+Measurement Module & Allows users to set reminders and record health measurements (BP, sugar, weight). \\ \hline
+Activity Reminder Module & Allows users to set reminders for daily physical activities. \\ \hline
+Appointment Management Module & Enables users to schedule and manage doctor appointments. \\ \hline
+Chat Module & Allows the doctor/patient/caregiver to communicate through chat. \\ \hline
+Payment Module & Allows the doctor to send payment details to the patient. \\ \hline
+Intake Tracking Module & Allows users to mark reminders as taken or missed. \\ \hline
+Profile Management Module & Allows users to view and update their personal profile and health history. \\ \hline
+Pharmacy Delivery Module & Allows patients to send medicine requests to a pharmacist. \\ \hline
+Chatbot Assistance Module & Helps users by answering basic health-related questions. \\ \hline
+Feedback Module & Allows users to submit feedback, complaints, or queries. \\ \hline
+Emergency Contact Module & Allows users to add, manage, and access emergency contacts. \\ \hline
+Admin Management Module & Allows admin to manage users, approve/reject licenses, and view feedback. \\ \hline
+Firebase Data Module & Handles data storage and retrieval using Firebase Firestore. \\ \hline
+ViewModel Layer & Acts as a bridge between the user interface and backend services. \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Component Diagram}
+
+\begin{figure}[H]
+\centering
+% \includegraphics[width=\textwidth]{component_diagram.png}
+\caption{Component Diagram}
+\label{fig:component-diagram}
+\end{figure}
+
+\section{Data Dictionary}
+
+\begin{table}[H]
+\centering
+\caption{Data Dictionary}
+\label{tab:data-dictionary}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Terminology} & \textbf{Description} \\ \hline
+User & Stores personal details such as name, age, DOB, gender and manages medications, measurements, activities, and appointments. \\ \hline
+Medication & Stores medication details including name, dosage, frequency, start/end date, and reminder time. \\ \hline
+Measurement & Represents reminders for health measurements (BP, weight, sugar). \\ \hline
+Activity & Stores activity reminders (walking, water, meals). \\ \hline
+Appointment & Stores doctor appointment details (date, time, doctor name). \\ \hline
+Refill & Represents medicine refill information (name, quantity). \\ \hline
+Pharmacy & Allows patients to order medicines for delivery. \\ \hline
+Chatbot & Virtual assistant for health queries and app guidance. \\ \hline
+Notification & Manages reminder notifications for all modules. \\ \hline
+Feedback & Stores user feedback, complaints, and suggestions. \\ \hline
+Emergency Contact & Stores emergency contact details (name, phone). \\ \hline
+Firebase Auth & Interacts with Firebase Authentication for login/signup. \\ \hline
+Firebase Firestore & Interacts with Firestore to store/retrieve user data. \\ \hline
+Document Snapshot & Interacts with documents retrieved from Firestore. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{User Interface Design}
+\subsection{Screen Images}
+\textit{(Include screen images of the application here.)}
+
+\section{Design Decisions}
+
+In designing the Smart Healthcare Reminder mobile application, several key decisions were made:
+
+\begin{enumerate}
+    \item \textbf{Design Methodology:} Structured and modular approach.
+    \item \textbf{Architectural Style:} MVVM (Model, View, ViewModel).
+    \item \textbf{Database Design:} Firebase Firestore.
+    \item \textbf{Programming Languages \& Framework:} Flutter for Android frontend; Firebase for backend services.
+    \item \textbf{Algorithmic Approach:} CRUD operations with time-based scheduling logic.
+    \item \textbf{Security Decisions:} Firebase Authentication with secure login options.
+    \item \textbf{Design Tools:} UML modelling tools such as Draw.io.
+\end{enumerate}
+
+\section{Summary}
+
+This chapter presents a detailed analysis of the system design, covering design considerations, architectural structure, and high-level abstract models. It includes sequence, state, class, and component diagrams. The MVVM architecture pattern is used for its simplicity and ease of testing.
+
+\chapter{Implementation}
+\label{ch:implementation}
+
+This chapter describes the implementation part of the project. Before starting to create a project in Firebase, make sure its package name matches the project package name created in Android Studio. This chapter will provide major logic algorithms to help build a complete app.
+
+\section{Algorithms}
+
+% Algorithms 1-21
+
+\textbf{Algorithm 1: Splash Screen}\\
+\textit{Input:} App starts, user login status\\
+\textit{Output:} User is sent to Home screen or Login screen\\
+\textit{Steps:}
+\begin{enumerate}
+    \item App opens and splash screen is shown.
+    \item App checks if the user is already logged in.
+    \item If user is logged in, open Home screen.
+    \item If user is not logged in, open Login screen.
+    \item Splash screen closes.
+\end{enumerate}
+
+\textbf{Algorithm 2: Sign Up}\\
+\textit{Input:} Name, email, date of birth, gender, password\\
+\textit{Output:} New account is created, user goes to Login screen\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Sign Up screen.
+    \item User enters name, email, DOB, gender, and password. When user clicks Doctor, Caregiver, Pharmacist option, they enter license number or speciality and send request to admin for approval/rejection.
+    \item App checks all fields are filled correctly.
+    \item If something is wrong, show error message.
+    \item If all correct, create the account.
+    \item Send a verification email to the user.
+    \item Take user to Login screen.
+\end{enumerate}
+
+\textbf{Algorithm 3: Login}\\
+\textit{Input:} Email and password\\
+\textit{Output:} User is logged in and goes to Home screen\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Login screen.
+    \item User enters email and password.
+    \item App checks that fields are not empty.
+    \item If empty, show error message.
+    \item App checks email and password are correct.
+    \item If email is not verified, ask user to verify first.
+    \item If correct, take user to Home screen.
+    \item If user forgot password, send a reset link to their email.
+\end{enumerate}
+
+\textbf{Algorithm 4: Patient Module}\\
+\textit{Input:} Patient login, health task details\\
+\textit{Output:} Patient manages all health tasks in one place\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Patient logs in and opens Home screen.
+    \item Patient can add medication reminders.
+    \item Patient can set reminders for BP, sugar, and weight.
+    \item Patient can set reminders for daily activities.
+    \item Patient can book an appointment with a doctor.
+    \item Patient can view doctor recommendations.
+    \item Patient can mark tasks as taken or missed.
+    \item Patient can view health history in Profile.
+\end{enumerate}
+
+\textbf{Algorithm 5: Doctor Module}\\
+\textit{Input:} Doctor login, patient profile\\
+\textit{Output:} Doctor views patient data and gives recommendations\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Doctor logs in with email and password.
+    \item Doctor opens the patient list.
+    \item Doctor selects a patient to view.
+    \item Doctor sees patient's medicines, measurements, and reminder history.
+    \item Doctor checks if patient is taking medicines on time.
+    \item Doctor writes recommendations like medicine changes or checkup schedule.
+    \item Doctor decides if patient needs a caregiver or can manage alone.
+    \item Patient can see doctor's notes in their profile.
+    \item Doctor logs out when done.
+\end{enumerate}
+
+\textbf{Algorithm 6: In-App Chat}\\
+\textit{Input:} Approved request status, text message\\
+\textit{Output:} Message exchange and payment detail sharing\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Doctor and caregiver approves patient request.
+    \item App updates status to Approved.
+    \item App enables Chat button for users.
+    \item User opens chat and types a message.
+    \item If any field is missing, display error message.
+    \item If valid, send and display message on screens.
+\end{enumerate}
+
+\textbf{Algorithm 7: Payment}\\
+\textit{Input:} Payment details (Doctor name, payment number, Transaction ID, receipt screenshot)\\
+\textit{Output:} Payment marked as Approved or Rejected\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Doctor opens the Payments tab in the Doctor Portal.
+    \item App shows all pending patient payments.
+    \item Doctor selects a payment to view the receipt screenshot and Transaction ID.
+    \item Doctor taps Approve or Reject.
+    \item App updates the payment status in the database.
+    \item Patient sees the updated status on their screen.
+\end{enumerate}
+
+\textbf{Algorithm 8: Caregiver Module}\\
+\textit{Input:} Caregiver login, patient profile\\
+\textit{Output:} Caregiver monitors and manages patient health tasks\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Caregiver logs in with email and password.
+    \item Caregiver opens assigned patient's profile.
+    \item Caregiver can see all active reminders of the patient.
+    \item Caregiver updates task status as taken or missed on behalf of patient.
+    \item Caregiver tracks patient's daily health progress.
+    \item Caregiver views patient's measurement records.
+    \item Caregiver makes sure patient does not miss any health task.
+    \item Caregiver logs out when done.
+\end{enumerate}
+
+\textbf{Algorithm 9: Medication Reminder}\\
+\textit{Input:} Medicine name, dosage, frequency, start date, end date, reminder time\\
+\textit{Output:} Medication reminder is saved and notification is set\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Medication screen.
+    \item User enters medicine name, dosage, frequency, and reminder time.
+    \item App checks all fields are filled.
+    \item If not filled, show error.
+    \item If filled, save the medication reminder.
+    \item Set a notification at the reminder time.
+    \item Show medicine in the reminder list.
+    \item User marks medicine as taken or missed when notification comes.
+    \item User can update or delete the reminder anytime.
+\end{enumerate}
+
+\textbf{Algorithm 10: Measurement Reminder}\\
+\textit{Input:} Measurement type (BP / Sugar / Weight), reminder time\\
+\textit{Output:} Measurement reminder is saved and notification is set\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Measurement screen.
+    \item User selects measurement type and sets reminder time.
+    \item App checks that type and time are selected.
+    \item If not selected, show error.
+    \item If selected, save the reminder.
+    \item Set a notification at the reminder time.
+    \item Show reminder in active list.
+    \item User can update or delete the reminder anytime.
+\end{enumerate}
+
+\textbf{Algorithm 11: Activity Reminder}\\
+\textit{Input:} Activity type (Water / Meal / Walk / Exercise), reminder time, frequency\\
+\textit{Output:} Activity reminder is saved and notifications are set\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Activity screen.
+    \item User selects activity type, reminder time, and frequency.
+    \item App checks all options are selected.
+\end{enumerate}
+
+\textbf{Algorithm 12: Medical Professional}\\
+\textit{Input:} Connection request, Appointment schedule\\
+\textit{Output:} Patient connects with doctor/caregiver and appointments saved with reminder\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens the Medical Professional screen.
+    \item User enters doctor details, reasons/symptoms and sends request.
+    \item User enters caregiver name and email and sends request.
+    \item App checks that all fields are filled.
+    \item If any field is empty, shows error message.
+    \item App sends the request and updates status to Pending.
+    \item User selects Appointment tab to view or manage scheduled visits.
+\end{enumerate}
+
+\textbf{Algorithm 13: Appointment Reminder}\\
+\textit{Input:} Appointment date, time, doctor or clinic name\\
+\textit{Output:} Appointment is saved and reminder notification is set\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Appointment screen.
+    \item User enters date, time, and doctor or clinic name.
+    \item App checks all fields are filled and date is in the future.
+    \item If not, show error.
+    \item If correct, save the appointment.
+    \item Set a reminder notification at the appointment time.
+    \item Show appointment in upcoming list.
+    \item User can update or delete the appointment anytime.
+\end{enumerate}
+
+\textbf{Algorithm 14: Refill Reminder}\\
+\textit{Input:} Medicine name, quantity\\
+\textit{Output:} Refill reminder is saved, notification sent when medicine is low\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens medication screen.
+    \item User enters medicine name and current quantity.
+    \item App checks fields are filled.
+    \item If not, show error.
+    \item When quantity becomes low, send a notification to refill.
+    \item Show refill reminder in active list.
+    \item User can update or delete the refill reminder.
+\end{enumerate}
+
+\textbf{Algorithm 15: Measurement Tracker}\\
+\textit{Input:} Measurement type, values (BP readings / sugar level / weight)\\
+\textit{Output:} Health value is saved and shown in history\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Measurement Tracker screen.
+    \item User selects measurement type.
+    \item User enters the value (e.g., systolic and diastolic for BP).
+    \item App checks values are valid numbers.
+    \item If not valid, show error.
+    \item If valid, save the record with date and time.
+    \item Show record in health history list.
+    \item User can update or delete any record.
+\end{enumerate}
+
+\textbf{Algorithm 16: Pharmacy}\\
+\textit{Input:} Medicine name, quantity, delivery address\\
+\textit{Output:} Checked medicine stock, calculated total price, placed delivery order\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Pharmacy screen.
+    \item User enters medicine name and required quantity.
+    \item User taps check delivery availability.
+    \item App checks stock and delivery availability.
+    \item If out of stock, app displays an error message.
+    \item If available, patient enters delivery address.
+    \item Pharmacist calculates medicine cost and delivery fee.
+    \item Patient confirms and places order using Cash on Delivery.
+    \item App saves order details and displays order confirmation to patient.
+\end{enumerate}
+
+\textbf{Algorithm 17: Chatbot}\\
+\textit{Input:} User's health question\\
+\textit{Output:} AI gives a simple health answer or tip\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Chatbot screen.
+    \item User types a health question.
+    \item Question is sent to the AI model.
+    \item AI reads the question and finds the best answer.
+    \item If user shares a health value like high BP, AI gives a helpful tip.
+    \item AI reply is shown in the chat.
+    \item If AI does not understand, it shows a helpful default message.
+    \item Chat history stays on screen during the session.
+\end{enumerate}
+
+\textbf{Algorithm 18: Notification and Reminder}\\
+\textit{Input:} Reminder time set by user in any module\\
+\textit{Output:} Notification is sent, status marked as Taken or Missed\\
+\textit{Steps:}
+\begin{enumerate}
+    \item App checks all saved reminders.
+    \item At the set time, a notification is sent to the user.
+    \item Notification shows the task and reminder type.
+    \item If user marks it as Taken, status is saved as Taken.
+    \item If user ignores it, notification is repeated until user marks it.
+    \item Result is saved in Track Intake.
+\end{enumerate}
+
+\textbf{Algorithm 19: Track Intake}\\
+\textit{Input:} User response to reminder (Taken or Missed)\\
+\textit{Output:} Daily health record is updated\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Track Intake screen.
+    \item All today's reminders are shown.
+    \item User selects a reminder and marks it as Taken or Missed.
+    \item Status is saved with date and time.
+    \item User can see daily summary of all Taken and Missed tasks.
+    \item All records are saved and can be viewed in Profile History.
+\end{enumerate}
+
+\textbf{Algorithm 20: Profile Section}\\
+\textit{Input:} User profile info, feedback text, emergency contact details\\
+\textit{Output:} Profile updated, feedback sent to admin, emergency contact saved\\
+\textit{Steps:}
+\begin{enumerate}
+    \item User opens Profile screen.
+    \item User can see their personal details like name and email.
+    \item User goes to History to see all Taken and Missed records.
+    \item User goes to Feedback and writes a suggestion or complaint.
+    \item App checks feedback is not empty.
+    \item If not empty, feedback is saved and sent to admin.
+    \item User adds emergency contact.
+    \item App checks name and number are valid.
+    \item Emergency contact is saved for quick access in emergencies.
+\end{enumerate}
+
+\textbf{Algorithm 21: Admin Module}\\
+\textit{Input:} Admin login credentials\\
+\textit{Output:} Admin can view registered users and user feedback\\
+\textit{Steps:}
+\begin{enumerate}
+    \item Admin enters email and password to login.
+    \item Admin opens Admin Dashboard.
+    \item Admin can see list of all registered users.
+    \item Admin can approve and reject license of doctor.
+    \item Admin can view all feedback sent by users.
+    \item Admin can view emergency contact details saved by users.
+    \item Admin logs out when done.
+\end{enumerate}
+
+
+\section{External APIs/SDKs}
+
+Medicare uses Firebase services for its main external services. Firebase Authentication is used for user registration while Cloud Firestore is used for data management and Firebase Cloud Messaging for push notifications. Flutter Local Notification is used to display scheduled or instant notifications on a user's device. All these services are included via Gradle dependencies and are used as built-in components within the Android project.
+
+\section{Code Repository}
+
+Git repository link: \url{https://github.com/laibashamim189-dotcom/medicaree}. The source code of the project is stored in a Git repository, which contains all the modules and features of Medicare. It is a public repository; the entire code is there and will be updated on a daily basis as we test our app and improve it.
+
+\section{Summary}
+
+This chapter outlined almost all major component algorithms, although not all are included here. One can get the understanding, working, and flow of the things from the algorithms and understand the project from the repository.
+
+\chapter{Testing and Evaluation}
+\label{ch:testing}
+
+This chapter focuses on testing and evaluation of the project. The validation and verification of different components will be considered. The project is still under development; mostly testing is done manually. No automated scripts have been followed yet.
+
+\section{Unit Testing (UT)}
+% Unit Test Cases UT1-UT10
+
+\begin{table}[H]
+\centering
+\caption{Unit Test Case 1: User Authentication}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & UT1 \\ \hline
+\textbf{Title} & User Authentication (Login \& Registration) \\ \hline
+\textbf{Description} & This test verifies that a user can register a new account and successfully log into the system. \\ \hline
+\textbf{Objective} & To confirm correct authentication, user creation, and secure access. \\ \hline
+\textbf{Precondition} & Firebase Authentication initialized. \\ \hline
+\textbf{Test Steps} & 1. Register new user. 2. Store user in Firestore. 3. Login using credentials. 4. Verify dashboard access. \\ \hline
+\textbf{Input} & Email, password, personal details. \\ \hline
+\textbf{Expected Results} & User should be registered and successfully logged in. \\ \hline
+\textbf{Actual Results} & User created and login successful. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Unit Test Case 2: Medication Reminder Creation}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & UT2 \\ \hline
+\textbf{Title} & Medication Reminder Creation \\ \hline
+\textbf{Description} & The patient adds medication and system schedules reminders. \\ \hline
+\textbf{Objective} & Verify that medication data is stored and reminder is generated. \\ \hline
+\textbf{Precondition} & Patient is logged in. \\ \hline
+\textbf{Test Steps} & 1. Open Medication module. 2. Add medicine details. 3. Save medication. 4. Check reminder notification. \\ \hline
+\textbf{Input} & Medicine name, dosage, time. \\ \hline
+\textbf{Expected Results} & Medication saved and reminder notification scheduled. \\ \hline
+\textbf{Actual Results} & Medication stored and notification triggered. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: UT3-UT10 follow the same format. Add them for:
+% UT3: Health Measurement Recording (Pass)
+% UT4: Appointment Reminder (Pass)
+% UT5: Doctor Recommendation Submission (Pass)
+% UT6: Pharmacy Medicine Request (Pass)
+% UT7: Doctor-Patient Chat (Pass)
+% UT8: AI Chatbot Health Guidance (Pass)
+% UT9: Feedback Submission (Pass)
+% UT10: Emergency Contact Save and Call (Pass)
+
+
+\section{Functional Testing (FT)}
+% Functional Test Cases FT1-FT12
+
+\begin{table}[H]
+\centering
+\caption{Functional Test Case 1: Health Modules}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & FT1 \\ \hline
+\textbf{Title} & Health Modules (Medication, Measurement, Activities, Appointment, Refill) \\ \hline
+\textbf{Description} & Verifies that the patient can successfully create and manage health-related modules. \\ \hline
+\textbf{Objective} & To ensure all health modules correctly store data in Firestore and trigger scheduled reminders. \\ \hline
+\textbf{Precondition} & Patient is authenticated, Firestore initialized. \\ \hline
+\textbf{Test Steps} & 1. Add medication reminder. 2. Add measurement record. 3. Book appointment. 4. Set refill reminder. 5. Add activity reminder. 6. Verify data stored. \\ \hline
+\textbf{Input} & Medicine details, BP/sugar/weight values, appointment info, refill data, activity type. \\ \hline
+\textbf{Expected Results} & All records should be stored successfully and reminders scheduled. \\ \hline
+\textbf{Actual Results} & All modules data saved successfully in Firestore. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: FT2-FT12 follow the same format. Add them for:
+% FT2: User Authentication (Pass)
+% FT3: Sending Request to Doctor (Pass)
+% FT4: Doctor Recommendation (Pass)
+% FT5: Pharmacy Medicine Stock and Order (Pass)
+% FT6: Profile & Health History Management (Pass)
+% FT7: Medical License Verification (Pass)
+% FT8: Doctor Login Based on License Approval (Pass)
+% FT9: Patient-Doctor Chat Functionality (Pass)
+% FT10: Patient-Caregiver Chat Functionality (Pass)
+% FT11: Doctor Payment Functionality (Pass)
+% FT12: Pharmacist Medicine and Delivery Management (Pass)
+
+
+\section{Integration Testing (IT)}
+% Integration Test Cases IT1-IT9
+
+\begin{table}[H]
+\centering
+\caption{Integration Test Case 1: Authentication and Role-Based Access}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & IT1 \\ \hline
+\textbf{Title} & Authentication and Role-Based Access Integration \\ \hline
+\textbf{Description} & Verifies integration between Firebase Authentication and role-based access. \\ \hline
+\textbf{Objective} & To confirm that each authenticated user is redirected to the correct dashboard. \\ \hline
+\textbf{Precondition} & Firebase Authentication and user role information are configured. \\ \hline
+\textbf{Test Steps} & 1. User enters email/password. 2. Firebase validates. 3. System retrieves role. 4. System redirects to dashboard. \\ \hline
+\textbf{Input} & Email, password and user role. \\ \hline
+\textbf{Expected Results} & Each user redirected to the correct dashboard according to their role. \\ \hline
+\textbf{Actual Results} & Each user successfully redirected to the correct dashboard. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: IT2-IT9 follow the same format. Add them for:
+% IT2: Reminder, Intake Status and History Integration (Pass)
+% IT3: Doctor Recommendation and Caregiver Integration (Pass)
+% IT4: Caregiver and Patient Reminder Integration (Pass)
+% IT5: AI Chatbot Integration with System (Pass)
+% IT6: Doctor License Submission and Admin Approval Integration (Pass)
+% IT7: Admin License Rejection and Doctor Login Integration (Pass)
+% IT8: Patient-Doctor Chat Integration (Pass)
+% IT9: Doctor Payment and Verification Integration (Pass)
+
+
+\section{Performance Testing (PT)}
+% Performance Test Cases PT1-PT6
+
+\begin{table}[H]
+\centering
+\caption{Performance Test Case 1: User Login Response Time}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & PT1 \\ \hline
+\textbf{Title} & User Login Response Time \\ \hline
+\textbf{Description} & Tests how quickly the system logs in a user under normal and high load conditions. \\ \hline
+\textbf{Objective} & Ensure fast and efficient login performance. \\ \hline
+\textbf{Precondition} & Internet active, Firebase initialized. \\ \hline
+\textbf{Test Steps} & 1. Open login screen. 2. Enter credentials. 3. Tap login. 4. Measure response time. \\ \hline
+\textbf{Input} & Valid email and password. \\ \hline
+\textbf{Expected Results} & Login should complete within 2--3 seconds. \\ \hline
+\textbf{Actual Results} & Login completed in 2 seconds. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Performance Test Case 2: Data Storage Performance}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\textbf{Testcase ID} & PT2 \\ \hline
+\textbf{Title} & Medication, Measurement, Appointment and Activity Data Storage Performance \\ \hline
+\textbf{Description} & Measures time taken to store and schedule reminder. \\ \hline
+\textbf{Objective} & Ensure quick database write and scheduling process. \\ \hline
+\textbf{Precondition} & Patient logged in. \\ \hline
+\textbf{Test Steps} & 1. Add details. 2. Save data. 3. Measure response. \\ \hline
+\textbf{Input} & Medicine name, measurement, activity type, dosage, time. \\ \hline
+\textbf{Expected Results} & Data stored within 2 seconds. \\ \hline
+\textbf{Actual Results} & Data saved in 1.5 seconds. \\ \hline
+\textbf{Remarks} & Pass \\ \hline
+\end{tabularx}
+\end{table}
+
+% NOTE: PT3-PT6 follow the same format:
+% PT3: Reminder Notification Performance (Pass)
+% PT4: Chat Performance (Pass)
+% PT5: Chatbot Response Time (Response in 3 seconds - Pass)
+% PT6: Multiple Users Load Test (System handled load - Pass)
+
+
+\subsection*{Summary}
+This chapter focuses on testing and evaluation of the project. Unit testing, integration testing, functional testing, and performance testing of several units and components were conducted with satisfactory results.
+
+\chapter{System Conversion}
+\label{ch:conversion}
+
+\section{Conversion Method}
+
+For the implementation of the Smart Healthcare Reminder, the system conversion method should ensure that the system works smoothly from the old reminder system to the new intelligent system.
+
+\subsection{Pilot Conversion}
+In the pilot conversion approach, the new system is initially implemented in a limited, controlled environment for limited users or one department of a hospital. This allows for comprehensive testing of the system's core functionalities, identification of real-world issues, and collection of user feedback before full-scale deployment.
+
+\textbf{Justification:}
+\begin{itemize}
+    \item \textbf{Reduced Risk:} Since limited users used the system initially, the risk of system-wide failure is minimized.
+    \item \textbf{Focused Testing:} Allows in-depth testing of modules.
+    \item \textbf{User Feedback Loop:} Early user feedback helps improve the app before wider implementation.
+\end{itemize}
+
+\textbf{Pilot Scope:}
+\begin{itemize}
+    \item \textbf{Initial Group:} A selected group of patients will use the app at the initial stage.
+    \item \textbf{Modules Tested:} Authentication, Medication, Measurement, Activity, Tracker, Track Intake, Appointments, and role-based dashboards.
+    \item \textbf{Duration:} Two weeks of controlled usage.
+\end{itemize}
+
+\section{Deployment}
+
+Deployment involves preparing and transferring the Smart Healthcare Reminder System from the development environment to a live environment.
+
+\subsection{Deployment Steps}
+
+\begin{table}[H]
+\centering
+\caption{Deployment Steps}
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\textbf{Step} & \textbf{Task} & \textbf{Details} \\ \hline
+1 & Build APK/Bundle & Build signed APK using Android Studio for production deployment. \\ \hline
+2 & Backend Configuration & Ensure Firebase Firestore, Realtime Database, and Firebase Auth are live. \\ \hline
+3 & Firebase Rule Setup & Apply role-based read/write security rules for Firestore and Database. \\ \hline
+4 & App Deployment & Distribute APK through selected users via secure Google Play, WhatsApp. \\ \hline
+5 & Device Testing & Install on various Android versions for compatibility testing. \\ \hline
+6 & Live Environment & Check connectivity with Firebase and proper working of reminders. \\ \hline
+7 & Deployment Confirmation & Conduct user acceptance testing with limited patients for validation. \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Data Conversion}
+
+\begin{table}[H]
+\centering
+\caption{Data Conversion Steps}
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\textbf{Step} & \textbf{Task} & \textbf{Details} \\ \hline
+1 & Data Preparation & Collect and organize healthcare-related data. \\ \hline
+2 & Data Cleaning & Remove duplicates, incorrect values, and fix formatting. \\ \hline
+3 & Data Transformation & Convert to structured Firestore collections. \\ \hline
+4 & Data Loading & Upload data into Firebase Firestore. \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsection{Training}
+For training purposes, a descriptive video is created to guide users on how to use the Smart Healthcare Reminder Application. The video demonstrates the real usage scenarios for different actors.
+
+\section{Post Deployment Testing}
+
+\begin{table}[H]
+\centering
+\caption{Post Deployment Testing Steps}
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\textbf{Step} & \textbf{Test Activity} & \textbf{Expected Outcomes} \\ \hline
+1 & Launch Application & App starts successfully without crashes. \\ \hline
+2 & Login Functionality & User can login and signup. \\ \hline
+3 & Medication Reminder & Users can add medication and receive notifications. \\ \hline
+4 & Measurement Tracking & Users can record and view history. \\ \hline
+5 & Activity Reminder & Activity reminders triggered properly. \\ \hline
+6 & Data Integrity & Data remains consistent after login/logout. \\ \hline
+7 & Notification System & Notifications triggered at correct time. \\ \hline
+8 & Performance Check & App performs smoothly. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Challenges and Solutions}
+
+\begin{table}[H]
+\centering
+\caption{Challenges and Solutions}
+\begin{tabularx}{\textwidth}{|l|X|X|}
+\hline
+\textbf{Challenge} & \textbf{Description} & \textbf{Solution} \\ \hline
+Firebase Data Sync & Delay in syncing data across modules. & Real-time listeners and optimized Firestore queries. \\ \hline
+Notification Delay & Reminders not triggered due to background restrictions. & Alarm Manager and optimized notification handling. \\ \hline
+Role-Based Access & Incorrect permissions. & Proper Firestore security rules for each role. \\ \hline
+APK Installation & Devices blocked unsigned APKs. & Generated signed APK. \\ \hline
+Data Entry Errors & Incorrect health data entered. & Input validation and error messages. \\ \hline
+Device Compatibility & UI issues on different screens. & Responsive UI design and testing on multiple devices. \\ \hline
+Internet Dependency & Features depend on connectivity. & Connectivity status notifications. \\ \hline
+Chatbot Accuracy & General or unclear responses. & Improved chatbot logic. \\ \hline
+Reminder Overload & Too many notifications confused users. & Reminder grouping and limited alerts. \\ \hline
+Caregiver Linking & Difficulty in linking caregiver. & Simplified linking process. \\ \hline
+Security & Sensitive health data needed protection. & Firebase Authentication and secured Firestore rules. \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Summary}
+
+This chapter focuses on how the app is deployed and what training users need, how data is converted into useful information. It also focuses on challenges faced during development and how these challenges were tackled.
+
+\chapter{Conclusion}
+\label{ch:conclusion}
+
+\section{Introduction}
+This chapter will conclude what has been completed, partial, or still under development.
+
+\begin{table}[H]
+\centering
+\caption{Project Completion Status}
+\begin{tabularx}{\textwidth}{|X|l|}
+\hline
+\textbf{Objectives} & \textbf{Status} \\ \hline
+User Sign Up and Login with email and password & Completed \\ \hline
+Medication Reminders with notifications & Completed \\ \hline
+Measurement Reminders (BP, Sugar, Weight) & Completed \\ \hline
+Activity Reminders (Water, Meal, Walk, Exercise) & Completed \\ \hline
+Appointment Reminders with doctor name & Completed \\ \hline
+Medicine Refill Reminders & Completed \\ \hline
+Health Measurement Tracker & Completed \\ \hline
+Track Intake (Taken / Missed status) & Completed \\ \hline
+Pharmacy for medicine delivery & Completed \\ \hline
+AI Chatbot for health questions & Completed \\ \hline
+Doctor Module to view patient data & Completed \\ \hline
+Caregiver Module to monitor patient & Completed \\ \hline
+Profile Section with history and feedback & Completed \\ \hline
+Admin manages users and feedback & Completed \\ \hline
+\end{tabularx}
+\end{table}
+
+\section{Conclusion}
+Conclusion drawn from our work and results is that it was the need of the hour and users accepted the app and used it and liked it.
+
+\section{Future Works}
+After completing this project, we plan to develop a Web and iOS version of the app. More features like online doctor consultation and advanced AI health suggestions will also be added.
+
+
+\newpage
+\addcontentsline{toc}{chapter}{References}
+\begin{thebibliography}{9}
+\bibitem{nlm} National Library of Medicine. (2023).
+\bibitem{medisafe} Medisafe Pill \& Med Reminder (2025). Medisafe Pill \& Medication Reminder.
+\bibitem{dosecast} Dosecast (2025). Dosecast: Medication Reminder \& Tracker. \url{https://play.google.com}
+\bibitem{android} Google Developers (2026). Android Developers. \url{https://developer.android.com}
+\bibitem{flutter} Flutter Developers. (2026). Flutter Documentation. \url{https://docs.flutter.dev}
+\bibitem{dart} Dart Team. (2026). Dart Programming Language. \url{https://dart.dev}
+\bibitem{firestore} Firebase. (2026a). Cloud Firestore. \url{https://firebase.google.com/docs/firestore}
+\bibitem{fireauth} Firebase. (2026b). Firebase Authentication. \url{https://firebase.google.com/docs/auth}
+\bibitem{fcm} Firebase. (2026c). Firebase Cloud Messaging. \url{https://firebase.google.com/docs/cloud-messaging}
+\end{thebibliography}
+
+\appendix
+\chapter{General Coding Standards \& Guidelines}
+\label{app:coding-standards}
+
+To ensure the maintainability, readability, and scalability of the codebase for Medicare -- A Smart Healthcare Reminder App, the following coding standards and guidelines were followed throughout the development using Flutter and Firebase.
+
+\section{Variable Naming Conventions}
+Consistent naming is used throughout the app:
+\begin{itemize}
+    \item \texttt{snake\_case}: Used for file names and folder names (e.g., \texttt{medication\_screen.dart}).
+    \item \texttt{PascalCase}: Used for class and widget names (e.g., \texttt{MedicationReminder}, \texttt{HomeScreen}).
+    \item \texttt{camelCase}: Used for variables and function names (e.g., \texttt{reminderTime}, \texttt{saveReminder()}).
+\end{itemize}
+
+\section{Visual Scope Indicators}
+Variables are named clearly to show their scope:
+\begin{itemize}
+    \item \texttt{\_privateVariable} (underscore means it is private in Dart)
+    \item \texttt{const MAX\_RETRIES = 3}
+    \item \texttt{final String userId}
+\end{itemize}
+
+\section{Read-Only and Immutable Fields}
+\begin{itemize}
+    \item The \texttt{final} keyword is used for values that do not change after being set.
+    \item The \texttt{const} keyword is used for values that are fixed at compile time.
+    \item Example: \texttt{final String userId = auth.currentUser!.uid}
+\end{itemize}
+
+\section{Function Naming and Behavior}
+All function names clearly describe what they do:
+\begin{itemize}
+    \item \texttt{saveMedicationReminder()}
+    \item \texttt{loadUserData()}
+    \item \texttt{scheduleNotification()}
+    \item \texttt{markIntakeAsTaken()}
+    \item \texttt{fetchPatientRecords()}
+\end{itemize}
+
+\section{Commenting Style}
+Comments are added where the code is not easy to understand.
+\begin{lstlisting}
+// This function saves the medication reminder to Firestore
+Future<void> saveMedicationReminder(Reminder reminder) async {
+    // Validate fields before saving
+}
+\end{lstlisting}
+
+\section{Indentation and Code Structure}
+\begin{itemize}
+    \item 2-space indentation is used as per Flutter/Dart standard.
+    \item Each widget and function is clearly separated for easy reading.
+    \item Related code is grouped inside the same file or class.
+\end{itemize}
+
+\section{File and Folder Naming}
+All file names use \texttt{snake\_case} as required by Dart:
+\begin{itemize}
+    \item \texttt{medication\_screen.dart}
+    \item \texttt{notification\_helper.dart}
+    \item \texttt{chatbot\_screen.dart}
+\end{itemize}
+Folders are organized by feature: \texttt{auth/}, \texttt{medication/}, \texttt{measurement/}, \texttt{activity/}, \texttt{appointment/}, \texttt{chatbot/}, \texttt{admin/}.
+
+\section{Widget and Class Structure}
+\begin{itemize}
+    \item Each widget or class handles only one responsibility.
+    \item UI widgets are separated from business logic.
+    \item Provider or setState is used for state management.
+    \item Firebase calls are handled inside repository classes, not inside UI widgets.
+\end{itemize}
+
+\section{Access Modifiers and Scoping}
+\begin{itemize}
+    \item Private variables use underscore prefix (e.g., \texttt{\_reminderTime}).
+    \item Public methods are only made public when needed by another class.
+    \item Local variables are declared inside functions to limit their scope.
+\end{itemize}
+
+\section{Cohesion and Coupling}
+\begin{itemize}
+    \item Each module (Medication, Measurement, Activity, etc.) works independently.
+    \item Shared utilities like \texttt{NotificationHelper} and \texttt{FirebaseHelper} are used across modules without tight dependency.
+\end{itemize}
+
+\section{DRY Principle (Don't Repeat Yourself)}
+\begin{itemize}
+    \item Common logic is written once and reused across modules.
+    \item Helper classes like \texttt{FirebaseHelper} and \texttt{InputValidator} are shared across the whole app.
+    \item Repeated UI components are made into reusable widgets.
+\end{itemize}
+
+\section{Single Responsibility Principle (SRP)}
+\begin{itemize}
+    \item Each part of the code has one job.
+    \item A function handles a single task.
+    \item A class handles a single responsibility (e.g., \texttt{ReminderScheduler}, \texttt{UserAuth}).
+    \item A screen file only handles the UI for that screen.
+\end{itemize}
+
+\section{Extensibility and Maintainability}
+\begin{itemize}
+    \item New modules can be added without changing existing code.
+    \item Shared base classes and utility functions make future updates easy.
+    \item Firebase structure is designed to support adding new features easily.
+\end{itemize}
+
+\section{Exception Handling and Logging}
+\begin{itemize}
+    \item All Firebase and network calls are wrapped in try-catch blocks.
+    \item Errors are shown to the user with simple error messages using SnackBar.
+\end{itemize}
+
+\begin{lstlisting}
+try {
+    await firestore.collection('reminders').add(data);
+} catch (e) {
+    print('Failed to save reminder: $e');
+}
+\end{lstlisting}
+
+
+\end{document}

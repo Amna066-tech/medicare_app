@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/medication_model.dart';
 import '../models/intake_model.dart';
 import '../services/database_service.dart';
+import '../services/notification_service.dart';
 
 class DailyIntakeScreen extends StatelessWidget {
   const DailyIntakeScreen({super.key});
@@ -21,6 +22,10 @@ class DailyIntakeScreen extends StatelessWidget {
     );
 
     String res = await DatabaseService().logIntake(intake);
+
+    if (res == "success" && status == "Taken") {
+      await DatabaseService().processMedicationIntake(med.id);
+    }
 
     if (context.mounted) {
       if (res == "success") {

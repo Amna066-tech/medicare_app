@@ -1,0 +1,79 @@
+\documentclass[12pt, a4paper, oneside]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{pifont}
+\usepackage{pdflscape}
+
+\onehalfspacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue, citecolor=black}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\titleformat{\chapter}[display]{\normalfont\LARGE\bfseries\centering}{Chapter \thechapter}{20pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\lstset{language=Java, basicstyle=\small\ttfamily, breaklines=true, frame=single, tabsize=2, showstringspaces=false}
+
+\begin{document}
+
+\input{chapters/frontmatter}
+
+\newpage
+\tableofcontents
+\newpage
+\listoftables
+\newpage
+\listoffigures
+
+\input{chapters/ch1_introduction}
+\input{chapters/ch2_requirements}
+\input{chapters/ch3_design}
+\input{chapters/ch4_implementation}
+\input{chapters/ch5_testing}
+\input{chapters/ch6_conversion}
+\input{chapters/ch7_conclusion}
+
+\newpage
+\addcontentsline{toc}{chapter}{References}
+\begin{thebibliography}{9}
+\bibitem{nlm} National Library of Medicine. (2023).
+\bibitem{medisafe} Medisafe Pill \& Med Reminder (2025). Medisafe Pill \& Medication Reminder.
+\bibitem{dosecast} Dosecast (2025). Dosecast: Medication Reminder \& Tracker. \url{https://play.google.com}
+\bibitem{android} Google Developers (2026). Android Developers. \url{https://developer.android.com}
+\bibitem{flutter} Flutter Developers. (2026). Flutter Documentation. \url{https://docs.flutter.dev}
+\bibitem{dart} Dart Team. (2026). Dart Programming Language. \url{https://dart.dev}
+\bibitem{firestore} Firebase. (2026a). Cloud Firestore. \url{https://firebase.google.com/docs/firestore}
+\bibitem{fireauth} Firebase. (2026b). Firebase Authentication. \url{https://firebase.google.com/docs/auth}
+\bibitem{fcm} Firebase. (2026c). Firebase Cloud Messaging. \url{https://firebase.google.com/docs/cloud-messaging}
+\end{thebibliography}
+
+\input{chapters/appendix_a}
+
+\end{document}

@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 
@@ -74,41 +75,54 @@ class _PayDoctorScreenState extends State<PayDoctorScreen> {
     setState(() => _isUploading = true);
 
     try {
-      const cloudName = 'bliywgyk';
-      const uploadPreset = 'medicare_preset';
+      try {
+        const cloudName = 'bliywgyk';
+        const uploadPreset = 'medicare_preset';
 
-      final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-      var request = http.MultipartRequest('POST', uri)
-        ..fields['upload_preset'] = uploadPreset;
-      
-      if (kIsWeb) {
-        var bytes = await _selectedImage!.readAsBytes();
-        request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: 'receipt.jpg'));
-      } else {
-        request.files.add(await http.MultipartFile.fromPath('file', _selectedImage!.path));
-      }
+        final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+        var request = http.MultipartRequest('POST', uri)
+          ..fields['upload_preset'] = uploadPreset;
+        
+        if (kIsWeb) {
+          var bytes = await _selectedImage!.readAsBytes();
+          request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: 'receipt.jpg'));
+        } else {
+          request.files.add(await http.MultipartFile.fromPath('file', _selectedImage!.path));
+        }
 
-      var response = await request.send();
-      if (response.statusCode == 200) {
-        final responseData = await response.stream.bytesToString();
-        final jsonData = json.decode(responseData);
+        var response = await request.send().timeout(const Duration(seconds: 15));
+        if (response.statusCode == 200) {
+          final responseData = await response.stream.bytesToString();
+          final jsonData = json.decode(responseData);
+          setState(() {
+            _uploadedImageUrl = jsonData['secure_url'];
+            _isUploading = false;
+          });
+        } else {
+          final responseData = await response.stream.bytesToString();
+          throw Exception("Cloudinary Error: $responseData");
+        }
+      } catch (e) {
+        debugPrint("Cloudinary failed, trying Firebase: $e");
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final ref = FirebaseStorage.instance.ref('receipts/receipt_$timestamp.jpg');
+        if (kIsWeb) {
+          await ref.putData(await _selectedImage!.readAsBytes()).timeout(const Duration(seconds: 15));
+        } else {
+          await ref.putFile(File(_selectedImage!.path)).timeout(const Duration(seconds: 15));
+        }
+        final downloadUrl = await ref.getDownloadURL();
         setState(() {
-          _uploadedImageUrl = jsonData['secure_url'];
+          _uploadedImageUrl = downloadUrl;
           _isUploading = false;
         });
-        if (mounted) {
+      }
+
+      if (_uploadedImageUrl != null && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Receipt uploaded successfully!")),
           );
         }
-      } else {
-        setState(() => _isUploading = false);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to upload receipt image.")),
-          );
-        }
-      }
     } catch (e) {
       setState(() => _isUploading = false);
       if (mounted) {

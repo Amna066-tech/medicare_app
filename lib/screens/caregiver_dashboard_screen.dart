@@ -4,6 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
 import 'main_navigation_screen.dart';
 import 'feedback_screen.dart';
+import 'chat_screen.dart';
+
+import '../services/chat_notification_service.dart';
+import '../services/alert_notification_service.dart';
 
 class CaregiverDashboardScreen extends StatefulWidget {
   const CaregiverDashboardScreen({super.key});
@@ -20,10 +24,14 @@ class _CaregiverDashboardScreenState extends State<CaregiverDashboardScreen> wit
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    ChatNotificationService().startListening();
+    AlertNotificationService().startListening();
   }
 
   @override
   void dispose() {
+    ChatNotificationService().stopListening();
+    AlertNotificationService().stopListening();
     _tabController.dispose();
     super.dispose();
   }
@@ -74,11 +82,17 @@ class _CaregiverDashboardScreenState extends State<CaregiverDashboardScreen> wit
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildIncomingTab(),
-          _buildAcceptedTab(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildIncomingTab(),
+                _buildAcceptedTab(),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -177,89 +191,152 @@ class _CaregiverDashboardScreenState extends State<CaregiverDashboardScreen> wit
     required bool isPending,
     required String? patientId,
   }) {
+    final currentUserUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final chatRoomId = "${docId}_$currentUserUid";
+    
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: isPending ? Colors.orange.withOpacity(0.15) : const Color(0xFF1976D2).withOpacity(0.15),
-                  child: Icon(
-                    isPending ? Icons.person_add_alt_1 : Icons.person,
-                    color: isPending ? Colors.orange : const Color(0xFF1976D2),
-                    size: 24,
+      child: InkWell(
+        onTap: isPending ? null : () {
+          if (patientId == null) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MainNavigationScreen(viewingPatientId: patientId),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: isPending ? Colors.orange.withOpacity(0.15) : Colors.green.withOpacity(0.8),
+                    child: Icon(
+                      isPending ? Icons.person_add_alt_1 : Icons.check,
+                      color: isPending ? Colors.orange : Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Patient:", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(
+                          patientName,
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1976D2)),
+                        ),
+                        if (!isPending)
+                          const Text(
+                            "Patient Dashboard",
+                            style: TextStyle(fontSize: 12, color: Colors.green),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (!isPending)
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                ],
+              ),
+              if (isPending) ...[
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
+                    onPressed: () async {
+                      await FirebaseFirestore.instance
+                          .collection('caregiver_requests')
+                          .doc(docId)
+                          .update({
+                            'status': 'accepted',
+                            'caregiverId': FirebaseAuth.instance.currentUser?.uid,
+                          });
+                    },
+                    child: const Text(
+                      "Accept Access Request",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ],
+              if (!isPending) ...[
+                const SizedBox(height: 8),
+                const Divider(),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      Text(
-                        patientName,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF2C4356)),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1976D2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
+                        label: const Text(
+                          "Chat",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: () async {
+                          // Initialize the chat document so we can query by participants
+                          await FirebaseFirestore.instance.collection('chats').doc(chatRoomId).set({
+                            'participants': FieldValue.arrayUnion([currentUserUid, patientId]),
+                          }, SetOptions(merge: true));
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                chatId: chatRoomId,
+                                peerName: patientName,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        patientEmail,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      // Red dot indicator logic
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance.collection('chats').doc(chatRoomId).snapshots(),
+                          builder: (context, chatSnap) {
+                            if (chatSnap.hasData && chatSnap.data!.exists) {
+                              final data = chatSnap.data!.data() as Map<String, dynamic>?;
+                              if (data != null) {
+                                final isRead = data['isRead'] ?? true;
+                                final lastSenderId = data['lastSenderId'];
+                                if (!isRead && lastSenderId != currentUser?.uid) {
+                                  return const CircleAvatar(radius: 6, backgroundColor: Colors.red);
+                                }
+                              }
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              height: 44,
-              child: isPending
-                  ? ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        elevation: 0,
-                      ),
-                      onPressed: () async {
-                        await FirebaseFirestore.instance
-                            .collection('caregiver_requests')
-                            .doc(docId)
-                            .update({'status': 'accepted'});
-                      },
-                      child: const Text(
-                        "Accept Access Request",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    )
-                  : ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1976D2),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        elevation: 0,
-                      ),
-                      icon: const Icon(Icons.dashboard_customize_outlined, color: Colors.white, size: 20),
-                      label: const Text(
-                        "Open Patient Dashboard",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                      onPressed: () {
-                        if (patientId == null) return;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MainNavigationScreen(viewingPatientId: patientId),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

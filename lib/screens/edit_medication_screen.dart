@@ -15,6 +15,7 @@ class EditMedicationScreen extends StatefulWidget {
 class _EditMedicationScreenState extends State<EditMedicationScreen> {
   late TextEditingController _nameController;
   late TextEditingController _dosageController;
+  late TextEditingController _stockController;
 
   late String _selectedFrequency;
   late int _doseCount;
@@ -28,6 +29,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
     // 1. Load their existing data into the text boxes
     _nameController = TextEditingController(text: widget.medication.name);
     _dosageController = TextEditingController(text: widget.medication.dosage);
+    _stockController = TextEditingController(text: widget.medication.stock?.toString() ?? '');
     _selectedFrequency = widget.medication.frequency;
 
     // 2. Set the number of clocks based on their saved frequency
@@ -132,13 +134,23 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
       List<String> formattedTimes = _selectedTimes.map((time) => time!.format(context)).toList();
 
       // We update the document directly in Firestore
-      await FirebaseFirestore.instance.collection('medications').doc(widget.medication.id).update({
-        'name': _nameController.text,
-        'dosage': _dosageController.text,
-        'frequency': _selectedFrequency,
-        'reminderTimes': formattedTimes,
-        'lastUpdated': DateTime.now().toString(),
-      });
+      MedicationModel updatedMed = MedicationModel(
+        id: widget.medication.id,
+        userId: widget.medication.userId,
+        name: _nameController.text,
+        dosage: _dosageController.text,
+        diseaseName: widget.medication.diseaseName,
+        frequency: _selectedFrequency,
+        startDate: widget.medication.startDate,
+        endDate: widget.medication.endDate,
+        reminderTimes: formattedTimes,
+        selectedDates: widget.medication.selectedDates,
+        stock: int.tryParse(_stockController.text),
+        lowStockNotified: int.tryParse(_stockController.text) != null && int.tryParse(_stockController.text)! > 3 ? false : widget.medication.lowStockNotified,
+        outOfStockNotified: int.tryParse(_stockController.text) != null && int.tryParse(_stockController.text)! > 0 ? false : widget.medication.outOfStockNotified,
+      );
+
+      await FirebaseFirestore.instance.collection('medications').doc(widget.medication.id).update(updatedMed.toMap());
 
       // ADDED: Dual-write to medical_history so it displays on the Medical History dashboard
       await FirebaseFirestore.instance.collection('medical_history').add({
@@ -187,6 +199,7 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
   void dispose() {
     _nameController.dispose();
     _dosageController.dispose();
+    _stockController.dispose();
     super.dispose();
   }
 
@@ -234,6 +247,8 @@ class _EditMedicationScreenState extends State<EditMedicationScreen> {
                       _buildInputField(controller: _nameController, label: "Medicine Name", hint: "e.g., Panadol", icon: Icons.medical_services_outlined),
                       const SizedBox(height: 16),
                       _buildInputField(controller: _dosageController, label: "Dosage", hint: "e.g., 1 Pill, 50mg", icon: Icons.vaccines_outlined),
+                      const SizedBox(height: 16),
+                      _buildInputField(controller: _stockController, label: "Stock (Optional)", hint: "e.g., 30", icon: Icons.inventory_2_outlined),
                       const SizedBox(height: 16),
 
                       DropdownButtonFormField<String>(

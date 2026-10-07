@@ -1,11 +1,12 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/user_model.dart';
 import 'login_screen.dart';
 
@@ -27,6 +28,25 @@ class _PharmacistVerificationScreenState extends State<PharmacistVerificationScr
   void initState() {
     super.initState();
     _currentStatus = widget.user.verificationStatus;
+    _clearTestDataIfNecessary();
+  }
+
+  void _clearTestDataIfNecessary() async {
+    if (_currentStatus == 'PENDING' && widget.user.name == 'saad') {
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(widget.user.uid).update({
+          'verificationStatus': 'NOT_SUBMITTED',
+          'certificateImageUrl': FieldValue.delete(),
+        });
+        if (mounted) {
+          setState(() {
+            _currentStatus = 'NOT_SUBMITTED';
+          });
+        }
+      } catch (e) {
+        debugPrint("Error clearing test data: $e");
+      }
+    }
   }
 
   Future<void> _pickImage() async {
@@ -52,27 +72,38 @@ class _PharmacistVerificationScreenState extends State<PharmacistVerificationScr
 
     try {
       String uid = widget.user.uid;
-      // Upload image to Cloudinary
-      const cloudName = 'bliywgyk';
-      const uploadPreset = 'medicare_preset';
-      final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
-      var request = http.MultipartRequest('POST', uri)
-        ..fields['upload_preset'] = uploadPreset;
-        
-      if (kIsWeb) {
-        var bytes = await _imageFile!.readAsBytes();
-        request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: 'certificate.jpg'));
-      } else {
-        request.files.add(await http.MultipartFile.fromPath('file', _imageFile!.path));
-      }
+      String downloadUrl;
+      try {
+        const cloudName = 'bliywgyk';
+        const uploadPreset = 'medicare_preset';
+        final uri = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+        var request = http.MultipartRequest('POST', uri)
+          ..fields['upload_preset'] = uploadPreset;
+          
+        if (kIsWeb) {
+          var bytes = await _imageFile!.readAsBytes();
+          request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: 'certificate.jpg'));
+        } else {
+          request.files.add(await http.MultipartFile.fromPath('file', _imageFile!.path));
+        }
 
-      var response = await request.send();
-      if (response.statusCode != 200) {
-        throw Exception("Failed to upload image to Cloudinary");
+        var response = await request.send().timeout(const Duration(seconds: 15));
+        final responseData = await response.stream.bytesToString();
+        if (response.statusCode != 200) {
+          throw Exception("Cloudinary Error: $responseData");
+        }
+        final jsonData = json.decode(responseData);
+        downloadUrl = jsonData['secure_url'];
+      } catch (e) {
+        debugPrint("Cloudinary failed, trying Firebase: $e");
+        final ref = FirebaseStorage.instance.ref('certificates/$uid.jpg');
+        if (kIsWeb) {
+          await ref.putData(await _imageFile!.readAsBytes()).timeout(const Duration(seconds: 15));
+        } else {
+          await ref.putFile(File(_imageFile!.path)).timeout(const Duration(seconds: 15));
+        }
+        downloadUrl = await ref.getDownloadURL();
       }
-      final responseData = await response.stream.bytesToString();
-      final jsonData = json.decode(responseData);
-      String downloadUrl = jsonData['secure_url'];
 
       // Update Firestore
       await FirebaseFirestore.instance.collection('users').doc(uid).update({
@@ -183,36 +214,41 @@ class _PharmacistVerificationScreenState extends State<PharmacistVerificationScr
             _buildReadOnlyField("Drug License Number", widget.user.drugLicenseNumber ?? "N/A"),
             const SizedBox(height: 24),
 
-            if (!isPending) ...[
-              const Text("Drug License Certificate Copy", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade400, style: BorderStyle.solid),
-                  ),
-                  child: _imageFile != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: kIsWeb 
-                              ? Image.network(_imageFile!.path, fit: BoxFit.cover)
-                              : Image.file(File(_imageFile!.path), fit: BoxFit.cover),
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_photo_alternate, size: 50, color: Colors.grey.shade500),
-                            const SizedBox(height: 8),
-                            Text("Tap to upload certificate", style: TextStyle(color: Colors.grey.shade600)),
-                          ],
-                        ),
+            const Text("Drug License Certificate Copy", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: (isPending && widget.user.certificateImageUrl != null && widget.user.certificateImageUrl!.isNotEmpty) ? null : _pickImage,
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade400, style: BorderStyle.solid),
                 ),
+                child: _imageFile != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: kIsWeb 
+                            ? Image.network(_imageFile!.path, fit: BoxFit.cover)
+                            : Image.file(File(_imageFile!.path), fit: BoxFit.cover),
+                      )
+                    : (widget.user.certificateImageUrl != null && widget.user.certificateImageUrl!.isNotEmpty)
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(widget.user.certificateImageUrl!, fit: BoxFit.cover),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate, size: 50, color: Colors.grey.shade500),
+                              const SizedBox(height: 8),
+                              Text("Tap to upload certificate", style: TextStyle(color: Colors.grey.shade600)),
+                            ],
+                          ),
               ),
-              const SizedBox(height: 32),
+            ),
+            const SizedBox(height: 32),
+            if (!isPending || widget.user.certificateImageUrl == null || widget.user.certificateImageUrl!.isEmpty)
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
@@ -226,7 +262,6 @@ class _PharmacistVerificationScreenState extends State<PharmacistVerificationScr
                       : const Text("Submit for Approval", style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ),
-            ]
           ],
         ),
       ),

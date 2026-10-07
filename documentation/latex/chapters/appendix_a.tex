@@ -1,0 +1,120 @@
+\appendix
+\chapter{General Coding Standards \& Guidelines}
+\label{app:coding-standards}
+
+To ensure the maintainability, readability, and scalability of the codebase for Medicare -- A Smart Healthcare Reminder App, the following coding standards and guidelines were followed throughout the development using Flutter and Firebase.
+
+\section{Variable Naming Conventions}
+Consistent naming is used throughout the app:
+\begin{itemize}
+    \item \texttt{snake\_case}: Used for file names and folder names (e.g., \texttt{medication\_screen.dart}).
+    \item \texttt{PascalCase}: Used for class and widget names (e.g., \texttt{MedicationReminder}, \texttt{HomeScreen}).
+    \item \texttt{camelCase}: Used for variables and function names (e.g., \texttt{reminderTime}, \texttt{saveReminder()}).
+\end{itemize}
+
+\section{Visual Scope Indicators}
+Variables are named clearly to show their scope:
+\begin{itemize}
+    \item \texttt{\_privateVariable} (underscore means it is private in Dart)
+    \item \texttt{const MAX\_RETRIES = 3}
+    \item \texttt{final String userId}
+\end{itemize}
+
+\section{Read-Only and Immutable Fields}
+\begin{itemize}
+    \item The \texttt{final} keyword is used for values that do not change after being set.
+    \item The \texttt{const} keyword is used for values that are fixed at compile time.
+    \item Example: \texttt{final String userId = auth.currentUser!.uid}
+\end{itemize}
+
+\section{Function Naming and Behavior}
+All function names clearly describe what they do:
+\begin{itemize}
+    \item \texttt{saveMedicationReminder()}
+    \item \texttt{loadUserData()}
+    \item \texttt{scheduleNotification()}
+    \item \texttt{markIntakeAsTaken()}
+    \item \texttt{fetchPatientRecords()}
+\end{itemize}
+
+\section{Commenting Style}
+Comments are added where the code is not easy to understand.
+\begin{lstlisting}
+// This function saves the medication reminder to Firestore
+Future<void> saveMedicationReminder(Reminder reminder) async {
+    // Validate fields before saving
+}
+\end{lstlisting}
+
+\section{Indentation and Code Structure}
+\begin{itemize}
+    \item 2-space indentation is used as per Flutter/Dart standard.
+    \item Each widget and function is clearly separated for easy reading.
+    \item Related code is grouped inside the same file or class.
+\end{itemize}
+
+\section{File and Folder Naming}
+All file names use \texttt{snake\_case} as required by Dart:
+\begin{itemize}
+    \item \texttt{medication\_screen.dart}
+    \item \texttt{notification\_helper.dart}
+    \item \texttt{chatbot\_screen.dart}
+\end{itemize}
+Folders are organized by feature: \texttt{auth/}, \texttt{medication/}, \texttt{measurement/}, \texttt{activity/}, \texttt{appointment/}, \texttt{chatbot/}, \texttt{admin/}.
+
+\section{Widget and Class Structure}
+\begin{itemize}
+    \item Each widget or class handles only one responsibility.
+    \item UI widgets are separated from business logic.
+    \item Provider or setState is used for state management.
+    \item Firebase calls are handled inside repository classes, not inside UI widgets.
+\end{itemize}
+
+\section{Access Modifiers and Scoping}
+\begin{itemize}
+    \item Private variables use underscore prefix (e.g., \texttt{\_reminderTime}).
+    \item Public methods are only made public when needed by another class.
+    \item Local variables are declared inside functions to limit their scope.
+\end{itemize}
+
+\section{Cohesion and Coupling}
+\begin{itemize}
+    \item Each module (Medication, Measurement, Activity, etc.) works independently.
+    \item Shared utilities like \texttt{NotificationHelper} and \texttt{FirebaseHelper} are used across modules without tight dependency.
+\end{itemize}
+
+\section{DRY Principle (Don't Repeat Yourself)}
+\begin{itemize}
+    \item Common logic is written once and reused across modules.
+    \item Helper classes like \texttt{FirebaseHelper} and \texttt{InputValidator} are shared across the whole app.
+    \item Repeated UI components are made into reusable widgets.
+\end{itemize}
+
+\section{Single Responsibility Principle (SRP)}
+\begin{itemize}
+    \item Each part of the code has one job.
+    \item A function handles a single task.
+    \item A class handles a single responsibility (e.g., \texttt{ReminderScheduler}, \texttt{UserAuth}).
+    \item A screen file only handles the UI for that screen.
+\end{itemize}
+
+\section{Extensibility and Maintainability}
+\begin{itemize}
+    \item New modules can be added without changing existing code.
+    \item Shared base classes and utility functions make future updates easy.
+    \item Firebase structure is designed to support adding new features easily.
+\end{itemize}
+
+\section{Exception Handling and Logging}
+\begin{itemize}
+    \item All Firebase and network calls are wrapped in try-catch blocks.
+    \item Errors are shown to the user with simple error messages using SnackBar.
+\end{itemize}
+
+\begin{lstlisting}
+try {
+    await firestore.collection('reminders').add(data);
+} catch (e) {
+    print('Failed to save reminder: $e');
+}
+\end{lstlisting}

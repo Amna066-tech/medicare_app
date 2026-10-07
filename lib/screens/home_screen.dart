@@ -284,59 +284,83 @@ class _HomeScreenState extends State<HomeScreen> {
             // Grid Buttons Dashboard Layout
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.9,
-                children: [
-                  _buildCard(
-                    icon: Icons.medication,
-                    iconColor: const Color(0xFF1550A6),
-                    iconBgColor: const Color(0xFF1550A6).withOpacity(0.1),
-                    title: "Medications",
-                    subtitle: "Pills & Drops",
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => RemindersDashboard(patientId: streamTargetUserId)),
-                    ),
-                  ),
-                  _buildCard(
-                    icon: Icons.straighten,
-                    iconColor: Colors.cyan,
-                    iconBgColor: Colors.cyan.withOpacity(0.1),
-                    title: "Measurements",
-                    subtitle: "Weight & BP",
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => MeasurementListScreen(patientId: streamTargetUserId)),
-                    ),
-                  ),
-                  _buildCard(
-                    icon: Icons.directions_run,
-                    iconColor: Colors.teal,
-                    iconBgColor: Colors.teal.withOpacity(0.1),
-                    title: "Activities",
-                    subtitle: "Walking & Water",
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => ActivityListScreen(patientId: streamTargetUserId)),
-                    ),
-                  ),
-                  _buildCard(
-                    icon: Icons.badge,
-                    iconColor: Colors.orange,
-                    iconBgColor: Colors.orange.withOpacity(0.1),
-                    title: "Medical Professional",
-                    subtitle: "",
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const MedicalProfessionalScreen()),
-                    ),
-                  ),
-                ],
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('chats')
+                    .where('participants', arrayContains: streamTargetUserId)
+                    .snapshots(),
+                builder: (context, chatSnapshot) {
+                  bool hasUnreadMedicalChats = false;
+
+                  if (chatSnapshot.hasData) {
+                    for (var doc in chatSnapshot.data!.docs) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final bool isRead = data['isRead'] ?? true;
+                      final String lastSenderId = data['lastSenderId'] ?? '';
+                      // If the message is unread and it wasn't sent by the current patient
+                      if (!isRead && lastSenderId != streamTargetUserId) {
+                        hasUnreadMedicalChats = true;
+                        break;
+                      }
+                    }
+                  }
+
+                  return GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.9,
+                    children: [
+                      _buildCard(
+                        icon: Icons.medication,
+                        iconColor: const Color(0xFF1550A6),
+                        iconBgColor: const Color(0xFF1550A6).withOpacity(0.1),
+                        title: "Medications",
+                        subtitle: "Pills & Drops",
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => RemindersDashboard(patientId: streamTargetUserId)),
+                        ),
+                      ),
+                      _buildCard(
+                        icon: Icons.straighten,
+                        iconColor: Colors.cyan,
+                        iconBgColor: Colors.cyan.withOpacity(0.1),
+                        title: "Measurements",
+                        subtitle: "Weight & BP",
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => MeasurementListScreen(patientId: streamTargetUserId)),
+                        ),
+                      ),
+                      _buildCard(
+                        icon: Icons.directions_run,
+                        iconColor: Colors.teal,
+                        iconBgColor: Colors.teal.withOpacity(0.1),
+                        title: "Activities",
+                        subtitle: "Walking & Water",
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ActivityListScreen(patientId: streamTargetUserId)),
+                        ),
+                      ),
+                      _buildCard(
+                        icon: Icons.badge,
+                        iconColor: Colors.orange,
+                        iconBgColor: Colors.orange.withOpacity(0.1),
+                        title: "Medical Professional",
+                        subtitle: "",
+                        hasNotification: hasUnreadMedicalChats,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => MedicalProfessionalScreen(viewingPatientId: streamTargetUserId)),
+                        ),
+                      ),
+                    ],
+                  );
+                }
               ),
             ),
           ],
@@ -352,6 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    bool hasNotification = false,
   }) {
     return InkWell(
       onTap: onTap,
@@ -371,13 +396,27 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 32, color: iconColor),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: iconBgColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, size: 32, color: iconColor),
+                ),
+                if (hasNotification)
+                  const Positioned(
+                    top: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      radius: 6,
+                      backgroundColor: Colors.red,
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             Text(

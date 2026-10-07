@@ -315,7 +315,7 @@ class _LicenseVerificationTabState extends State<LicenseVerificationTab> with Si
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
-                          onPressed: () => _updateStatus(uid, 'PENDING'),
+                          onPressed: () => _updateStatus(uid, 'REJECTED'),
                           icon: const Icon(Icons.warning),
                           label: const Text("Revoke Approval"),
                         ),

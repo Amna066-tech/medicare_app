@@ -8,6 +8,7 @@ import 'caregiver_dashboard_screen.dart';
 import 'doctor_verification_screen.dart';
 import 'nurse_verification_screen.dart';
 import 'pharmacist_verification_screen.dart';
+import 'pharmacy_dashboard_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -162,17 +163,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF1976D2);
-    const Color inputFillColor = Color(0xFFF3F4F6);
+    const Color primaryBlue = Color(0xFF1550A6);
+    const Color inputFillColor = Color(0xFFF2F4F7);
 
     return Scaffold(
       backgroundColor: primaryBlue,
       body: SafeArea(
         child: Column(
           children: [
+            // Pinned Header
+            const SizedBox(height: 32),
+            const Text(
+              "Create Account",
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Please fill the details to continue",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white70,
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Form Card
             Expanded(
               child: Container(
-                margin: const EdgeInsets.only(top: 16.0, left: 16.0, right: 16.0),
+                margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 padding: const EdgeInsets.all(24.0),
                 decoration: const BoxDecoration(
                   color: Colors.white,
@@ -188,19 +210,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // Role Dropdown
                       DropdownButtonFormField<String>(
                         value: _selectedRole,
-                        decoration: _inputDecoration("Account Type (Role)", Icons.badge_outlined, primaryBlue, inputFillColor),
+                        decoration: _inputDecoration("Account Type (Role)", Icons.assignment_ind, primaryBlue, inputFillColor),
                         items: ['Patient', 'Caregiver', 'Doctor', 'Pharmacist'].map((role) {
-                          return DropdownMenuItem(value: role, child: Text(role, style: const TextStyle(fontWeight: FontWeight.w500)));
+                          return DropdownMenuItem(value: role, child: Text(role, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2C3E50))));
                         }).toList(),
                         onChanged: (val) {
                           setState(() {
                             _selectedRole = val!;
-                            _caregiverType = null;
+                            if (_selectedRole != 'Caregiver') {
+                              _caregiverType = null;
+                            }
                           });
                         },
                         icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
                       ),
                       const SizedBox(height: 16),
+
+                      // Caregiver Type (Only if Caregiver)
+                      if (_selectedRole == 'Caregiver') ...[
+                        DropdownButtonFormField<String>(
+                          value: _caregiverType,
+                          decoration: _inputDecoration("Select Caregiver Type", Icons.people_outline, primaryBlue, inputFillColor),
+                          items: ['Nurse', 'Friend/Relative'].map((type) {
+                            return DropdownMenuItem(value: type, child: Text(type, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2C3E50))));
+                          }).toList(),
+                          onChanged: (val) => setState(() => _caregiverType = val),
+                          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // Full Name
                       TextField(
@@ -220,16 +258,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       // DOB
                       TextField(
                         controller: _dobController,
-                        decoration: _inputDecoration("DOB (YYYY-MM-DD)", Icons.calendar_today, primaryBlue, inputFillColor),
+                        decoration: _inputDecoration("DOB (YYYY-MM-DD)", Icons.calendar_today_outlined, primaryBlue, inputFillColor),
                       ),
                       const SizedBox(height: 16),
 
                       // Gender Dropdown
                       DropdownButtonFormField<String>(
                         value: _selectedGender,
-                        decoration: _inputDecoration("Select Gender", Icons.people, primaryBlue, inputFillColor),
+                        decoration: _inputDecoration("Select Gender", Icons.wc, primaryBlue, inputFillColor),
                         items: ['Male', 'Female', 'Other'].map((gender) {
-                          return DropdownMenuItem(value: gender, child: Text(gender, style: const TextStyle(fontWeight: FontWeight.w500)));
+                          return DropdownMenuItem(value: gender, child: Text(gender, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2C3E50))));
                         }).toList(),
                         onChanged: (val) => setState(() => _selectedGender = val),
                         icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
@@ -240,50 +278,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       if (_selectedRole == 'Doctor') ...[
                         TextField(
                           controller: _specialityController,
-                          decoration: _inputDecoration("Speciality", Icons.local_hospital, primaryBlue, inputFillColor),
+                          decoration: _inputDecoration("Speciality", Icons.medical_services, primaryBlue, inputFillColor),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _licenseNumberController,
-                          decoration: _inputDecoration("Medical License Number", Icons.credit_card, primaryBlue, inputFillColor),
+                          decoration: _inputDecoration("License Number", Icons.badge, primaryBlue, inputFillColor),
                         ),
                         const SizedBox(height: 16),
-                      ],
-
-                      if (_selectedRole == 'Caregiver') ...[
-                        DropdownButtonFormField<String>(
-                          value: _caregiverType,
-                          decoration: _inputDecoration("Caregiver Type", Icons.healing, primaryBlue, inputFillColor),
-                          items: ['Nurse', 'Friend/Relative'].map((type) {
-                            return DropdownMenuItem(value: type, child: Text(type, style: const TextStyle(fontWeight: FontWeight.w500)));
-                          }).toList(),
-                          onChanged: (val) => setState(() => _caregiverType = val),
-                          icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 16),
-                        if (_caregiverType == 'Nurse') ...[
-                          TextField(
-                            controller: _nursingLicenseController,
-                            decoration: _inputDecoration("Nursing License Number", Icons.credit_card, primaryBlue, inputFillColor),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
                       ],
 
                       if (_selectedRole == 'Pharmacist') ...[
                         TextField(
                           controller: _pharmacyNameController,
-                          decoration: _inputDecoration("Pharmacy Name", Icons.local_pharmacy, primaryBlue, inputFillColor),
+                          decoration: _inputDecoration("Pharmacy Name", Icons.add_business, primaryBlue, inputFillColor),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _pharmacyAddressController,
-                          decoration: _inputDecoration("Pharmacy Address", Icons.map, primaryBlue, inputFillColor),
+                          decoration: _inputDecoration("Pharmacy Address", Icons.map_outlined, primaryBlue, inputFillColor),
                         ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _drugLicenseController,
                           decoration: _inputDecoration("Drug License Number", Icons.description, primaryBlue, inputFillColor),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      if (_selectedRole == 'Caregiver' && _caregiverType == 'Nurse') ...[
+                        TextField(
+                          controller: _nursingLicenseController,
+                          decoration: _inputDecoration("Nursing License Number", Icons.badge, primaryBlue, inputFillColor),
                         ),
                         const SizedBox(height: 16),
                       ],
