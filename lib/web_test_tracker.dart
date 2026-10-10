@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/measurement_tracker_screen.dart';
+import 'views/measurement_tracker_screen.dart';
 
 void main() {
   runApp(const MaterialApp(

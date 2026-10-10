@@ -6,22 +6,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // <-- 1. Added the dotenv import
 import 'firebase_options.dart';
-import 'screens/login_screen.dart';
-import 'screens/main_navigation_screen.dart'; // The new dashboard wrapper
-import 'screens/splash_screen.dart'; // Splash screen
-import 'screens/reminder_confirmation_screen.dart';
+import 'views/login_screen.dart';
+import 'views/main_navigation_screen.dart'; // The new dashboard wrapper
+import 'views/splash_screen.dart'; // Splash screen
+import 'views/reminder_confirmation_screen.dart';
 import 'services/notification_service.dart';
 import 'services/database_service.dart';
 import 'models/medication_model.dart';
-import 'screens/chat_screen.dart';
+import 'views/chat_screen.dart';
 import 'models/user_model.dart';
-import 'screens/caregiver_dashboard_screen.dart';
-import 'screens/doctor_dashboard_screen.dart';
-import 'screens/pharmacy_dashboard_screen.dart';
-import 'screens/doctor_verification_screen.dart';
-import 'screens/nurse_verification_screen.dart';
-import 'screens/pharmacist_verification_screen.dart';
-import 'screens/rejected_screen.dart';
+import 'views/caregiver_dashboard_screen.dart';
+import 'views/doctor_dashboard_screen.dart';
+import 'views/pharmacy_dashboard_screen.dart';
+import 'views/doctor_verification_screen.dart';
+import 'views/nurse_verification_screen.dart';
+import 'views/pharmacist_verification_screen.dart';
+import 'views/rejected_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
