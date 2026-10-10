@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // <-- 1. Added the dotenv import
-import 'firebase_options.dart';
+import 'services/firebase_options.dart';
 import 'views/login_screen.dart';
 import 'views/main_navigation_screen.dart'; // The new dashboard wrapper
 import 'views/splash_screen.dart'; // Splash screen
